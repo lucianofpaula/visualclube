@@ -1,0 +1,905 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  USER
+  OWNER
+  STAFF
+  ADMIN
+}
+
+enum BusinessType {
+  BARBERSHOP // Barbearia
+  HAIR_SALON // Salão de Beleza
+  NAIL_SALON // Esmalteria
+  ESTHETICS_CLINIC // Clínica de Estética
+  SPA // Spa
+  TATTOO_STUDIO // Studio de Tatuagem / Piercing
+  OTHER // Outro
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum OrderStatus {
+  OPEN
+  PAID
+  CANCELED
+}
+
+enum OrderType {
+  ORDER
+  QUICK_SALE
+}
+
+enum StockMovementType {
+  IN_PURCHASE
+  OUT_SALE
+  OUT_LOSS
+  INTERNAL_USE
+  ADJUSTMENT
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+  SPLIT_PAYMENT
+  SUBSCRIPTION_CLUB
+}
+
+enum PaymentMethodType {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+  CITY_CARD       // Cartão Cidadão / Moeda Local
+  VOUCHER         // Vale Refeição / Alimentação / Cupom
+  LOCAL_AGREEMENT // Convênio Local / Parceria
+  BANK_TRANSFER   // Transferência / TED / Boleto
+  OTHER           // Outro meio customizado
+}
+
+enum FinancialAccountType {
+  CHECKING_ACCOUNT // Conta Corrente Bancária (Bradesco, Itaú, Nubank, etc.)
+  CASH_DRAWER      // Caixa Físico / Gaveta do Balcão
+  GATEWAY_ACCOUNT  // Conta Maquininha / Gateway (Stone, PagBank, etc.)
+  DIGITAL_WALLET   // Carteira Digital / Moeda Social (Mumbuca, PicPay)
+  SAVINGS          // Poupança / Reserva
+  OTHER            // Outra
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+  COMMISSION_PAYOUT
+  SUBSCRIPTION_FEE
+}
+
+enum CommissionStatus {
+  PENDING    // Aguardando confirmação / carência
+  AVAILABLE  // Disponível para resgate ou desconto
+  PAID       // Pago ao afiliado
+  CANCELED   // Cancelado por estorno ou cancelamento de plano
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+  QUARTERLY
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+
+// ----------------------------------------------------
+// AUTH & USERS (Compatível com Auth.js NextAuth v5)
+// ----------------------------------------------------
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Login via WhatsApp / Telefone
+  phone         String?   @unique // Formato: 5511999999999
+  phoneVerified DateTime?
+
+  username     String?   @unique // Gerado automaticamente (ex: luciano, lucianodepaula, luciano1)
+  passwordHash String? // Para login com senha
+  role         UserRole @default(USER)
+
+  // Dados de CRM & Perfil Enriquecido
+  birthDate              DateTime?
+  notes                  String?
+  tags                   String[]   @default([])
+  preferredProfessionalId String?   @db.ObjectId
+
+  // Token de Ativação de Acesso / Criação de Senha
+  activationToken        String?
+  activationTokenExpires DateTime?
+
+  // Vínculos com Estabelecimento
+  businessId String?   @db.ObjectId
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  // ----------------------------------------------------
+  // ESTRUTURA MULTINÍVEL (TREE / UNILEVEL - 3 NÍVEIS)
+  // ----------------------------------------------------
+  referralCode  String?   @unique // Código próprio para convidar (ex: "BARBER-7821")
+  
+  // Patrocinador direto (Pai imediato na árvore)
+  sponsorId     String?   @db.ObjectId
+  sponsor       User?     @relation("NetworkTree", fields: [sponsorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  directs       User[]    @relation("NetworkTree")
+
+  // Materialized Path & Uplines
+  uplineIds     String[]  @db.ObjectId // Lista de IDs de todos os ancestrais: [TopLeader, ..., Sponsor]
+  path          String    @default("") // Ex: "/id1/id2/id3"
+  treeLevel     Int       @default(1)  // Nível de profundidade na árvore (1 = Raiz)
+
+  // Comissões Multinível
+  commissionsEarned    ReferralCommission[] @relation("BeneficiaryUser")
+  commissionsGenerated ReferralCommission[] @relation("OriginUser")
+
+  accounts              Account[]
+  sessions              Session[]
+  appointments          Appointment[]              @relation("ClientAppointments")
+  orders                Order[]                    @relation("ClientOrders")
+  platformSubscriptions UserPlatformSubscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReferralCommission {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  
+  // Quem recebe a comissão (o upline - Nível 1, 2 ou 3)
+  beneficiaryId String           @db.ObjectId
+  beneficiary   User             @relation("BeneficiaryUser", fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  // Quem gerou a comissão (o indicado que assinou/comprou)
+  originUserId  String           @db.ObjectId
+  originUser    User             @relation("OriginUser", fields: [originUserId], references: [id], onDelete: Cascade)
+
+  level         Int              // 1 = Direto (Nível 1), 2 = Indireto (Nível 2), 3 = Indireto (Nível 3)
+  percentage    Float            // % aplicada (ex: 10.0, 5.0, 2.0)
+  amount        Float            // Valor em R$ da comissão
+  
+  status        CommissionStatus @default(PENDING)
+  description   String?          // Ex: "Comissão Nível 2 - Assinatura Plano Pro"
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String // Email ou WhatsApp
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ----------------------------------------------------
+// ESTABELECIMENTO / EMPRESA (SAAS TENANT)
+// ----------------------------------------------------
+
+model Business {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String       @unique // Para link de agendamento online: visualclube.com.br/b/slug
+  type        BusinessType @default(BARBERSHOP)
+  document    String? // CNPJ ou CPF
+  phone       String? // WhatsApp oficial do estabelecimento
+  email       String?
+  address     String?
+  city        String?
+  state       String?
+  logoUrl     String?
+  bannerUrl   String?
+  description String?
+
+  // Configurações e Tema Visual
+  themeColor String? @default("emerald") // emerald, gold, purple, blue, rose, dark
+  pixKey     String?
+  pixKeyType String? // CPF, CNPJ, EMAIL, PHONE, RANDOM
+
+  // Horários de funcionamento
+  openingHours String?
+
+  // Indicador Padrão do Estabelecimento (para Rede Multinível de Clientes)
+  defaultSponsorId String? @db.ObjectId
+
+  // Relacionamentos
+  users         User[]
+  professionals Professional[]
+  teamInvites   TeamInvite[]
+  services      Service[]
+  products      Product[]
+  appointments  Appointment[]
+  orders        Order[]
+  stockMovements StockMovement[]
+  accounts      FinancialAccount[]
+  paymentMethods PaymentMethodConfig[]
+  transactions          FinancialTransaction[]
+  subscriptions         SubscriptionPlan[]
+  platformSubscriptions UserPlatformSubscription[]
+  timeBlocks            TimeBlock[]
+  specialSchedules      SpecialSchedule[]
+
+  // Configurações do Clube de Assinaturas & Indicação
+  clubEnabled          Boolean   @default(true)
+  clubReferralEnabled  Boolean   @default(false)
+  clubDirectReferral   Boolean   @default(true)
+  clubIndirectReferral Boolean   @default(false)
+  clubReferralTerms    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// CONVITES DE EQUIPE & ONBOARDING (TOKEN SEGURO)
+// ----------------------------------------------------
+
+model TeamInvite {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String   @db.ObjectId
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  phone             String   // WhatsApp do profissional que receberá o convite
+  specialty         String   // Função/Cargo definido pelo dono (ex: Barbeiro Master)
+  commissionPercent Float    @default(50.0) // % de comissão sobre serviços
+  productCommission Float    @default(10.0) // % de comissão sobre produtos
+  colorHex          String   @default("#10b981") // Cor para a grade de agendamentos
+
+  token             String   @unique // Token único criptografado
+  expiresAt         DateTime // Expiração do link (padrão: 1 hora a partir da criação)
+  
+  status            String   @default("PENDING") // PENDING, ACCEPTED, EXPIRED, CANCELED
+  acceptedAt        DateTime?
+  
+  professionalId    String?  @db.ObjectId // ID do profissional gerado após o aceite
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// PROFISSIONAIS DA EQUIPE & COMISSÕES
+// ----------------------------------------------------
+
+model Professional {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String   @db.ObjectId
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name         String   // Nome completo do profissional
+  email        String?  // E-mail de contato
+  phone        String?  // WhatsApp oficial para contato e agendamentos
+  passwordHash String?  // Senha criptografada (bcrypt) para login no painel do profissional
+  avatarUrl    String?  // Foto de perfil / Avatar
+  specialty    String?  // Função/Especialidade (ex: Barbeiro Master, Hair Stylist, Nail Designer)
+  bio          String?  // Minibiografia para o Website Institucional
+  colorHex     String?  @default("#10b981") // Cor para identificar na grade de horários
+  themeColor   String?  @default("emerald") // emerald, sapphire, amethyst, amber, rose
+
+  commissionPercent Float   @default(50.0) // % padrão de comissão sobre serviços
+  productCommission Float   @default(10.0) // % padrão de comissão sobre produtos vendidos
+  pixKey            String?
+  pixKeyType        String? // CPF, CNPJ, EMAIL, PHONE, RANDOM
+  isActive          Boolean @default(true)
+  showInCalendar    Boolean @default(true) // Se aparece na Agenda e grade de horários (desmarcar para recepcionistas/administrativo)
+
+  appointments Appointment[]
+  orderItems   OrderItem[]
+  timeBlocks   TimeBlock[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Preenchido quando o profissional é desligado/arquivado (Soft Delete)
+}
+
+// ----------------------------------------------------
+// SERVIÇOS & CATÁLOGO
+// ----------------------------------------------------
+
+model Service {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String   @db.ObjectId
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name             String // Ex: Corte Degradê, Barboterapia, Manicure Gel
+  description      String?
+  price            Float // Preço em R$
+  durationMinutes  Int     @default(30)
+  customCommission Float? // Se houver comissão específica para este serviço
+  category         String? // Cabelo, Barba, Unhas, Estética Facial, etc.
+  isActive         Boolean @default(true)
+
+  appointments Appointment[]
+  orderItems   OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// PRODUTOS (VENDIDOS NA RECEPÇÃO / BAR / COMANDA)
+// ----------------------------------------------------
+
+model Product {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  businessId    String       @db.ObjectId
+  business      Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  // Auditoria
+  createdById   String?      @db.ObjectId
+  createdByName String?      // Nome do gestor/colaborador que cadastrou
+
+  name          String       // Ex: Pomada Matte, Cerveja IPA, Shampoo Especial
+  category      String?      // Bar, Cosméticos, Barbearia, Lavatório, etc.
+  description   String?
+  imageUrl      String?
+  sku           String?      // Código de referência interno (ex: POM-MAT-01)
+  barcode       String?      // Código de barras (EAN-13 / UPC)
+  unit          String?      @default("UN") // UN, ML, G, CX
+
+  price         Float        // Preço de venda
+  costPrice     Float?       @default(0.0) // Preço de custo
+  marginPercent Float?       // Margem de lucro em %
+
+  stock         Int          @default(0)
+  minStockAlert Int          @default(5)
+  trackStock    Boolean      @default(true) // Se gerencia estoque físico
+
+  customCommission Float?    // % específico de comissão sobre a venda deste produto
+  isActive      Boolean      @default(true)
+
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([businessId])
+  @@index([barcode])
+  @@index([sku])
+}
+
+// ----------------------------------------------------
+// HISTÓRICO & AUDITORIA DE MOVIMENTAÇÕES DE ESTOQUE
+// ----------------------------------------------------
+
+model StockMovement {
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  businessId    String            @db.ObjectId
+  business      Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  productId     String            @db.ObjectId
+  product       Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  type          StockMovementType @default(OUT_SALE)
+  quantity      Int               // Quantidade movimentada (+ para entrada, - para saída)
+  previousStock Int               // Estoque antes da movimentação
+  newStock      Int               // Estoque após a movimentação
+  costPrice     Float?            // Custo unitário no momento da movimentação
+
+  orderId       String?           @db.ObjectId // Vinculado à venda/comanda se for saída de venda
+  
+  // Auditoria
+  createdById   String?           @db.ObjectId // Usuário/colaborador que realizou a operação
+  creatorName   String?           // Nome para auditoria rápida
+  notes         String?           // Ex: "Venda no PDV CMD-104", "NF Entrada 4091", "Avaria no estoque"
+
+  createdAt     DateTime          @default(now())
+
+  @@index([businessId])
+  @@index([productId])
+  @@index([createdAt])
+}
+
+// ----------------------------------------------------
+// AGENDAMENTOS ONLINE & PRESENCIAIS
+// ----------------------------------------------------
+
+model Appointment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String   @db.ObjectId
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  clientId String? @db.ObjectId
+  client   User?   @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: SetNull)
+
+  clientName  String // Para agendamentos rápidos sem cadastro completo
+  clientPhone String // WhatsApp do cliente
+  clientEmail String?
+
+  professionalId String       @db.ObjectId
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  serviceId String  @db.ObjectId
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  date    DateTime // Data e hora de início
+  endDate DateTime // Data e hora de término
+  status  AppointmentStatus @default(SCHEDULED)
+  price   Float
+
+  notes                String?
+  whatsappReminderSent Boolean @default(false)
+
+  orderId String? @db.ObjectId
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// BLOQUEIOS DE HORÁRIO, PAUSAS & FOLGAS (EQUIPE)
+// ----------------------------------------------------
+
+model TimeBlock {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String   @db.ObjectId
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  professionalId String?       @db.ObjectId
+  professional   Professional? @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  date      String // "YYYY-MM-DD"
+  startTime String // "HH:mm"
+  endTime   String // "HH:mm"
+  reason    String // "Almoço", "Folga", "Intervalo", "Médico", etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([date])
+}
+
+// ----------------------------------------------------
+// DIAS ESPECIAIS & EXCEÇÕES DE HORÁRIO DA AGENDA
+// ----------------------------------------------------
+
+model SpecialSchedule {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId          String   @db.ObjectId
+  business            Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  date                String   // "YYYY-MM-DD"
+  isOpen              Boolean  @default(true)
+  openTime            String?  // "07:00"
+  closeTime           String?  // "21:00"
+  slotIntervalMinutes Int      @default(30)
+  reason              String   // "Feriado 7 de Setembro", "Horário Estendido", etc.
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([date])
+}
+
+// ----------------------------------------------------
+// COMANDAS INTELIGENTES & PDV DE VENDAS (AUDITADO)
+// ----------------------------------------------------
+
+model Order {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  code          String         // Ex: "CMD-104" ou "VD-891"
+  businessId    String         @db.ObjectId
+  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  type          OrderType      @default(ORDER)
+  status        OrderStatus    @default(OPEN) // OPEN, PAID, CANCELED
+
+  clientId      String?        @db.ObjectId
+  client        User?          @relation("ClientOrders", fields: [clientId], references: [id], onDelete: SetNull)
+
+  clientName    String?        // Nome do cliente na comanda
+  clientPhone   String?        // WhatsApp do cliente
+
+  professionalId String?       @db.ObjectId // Profissional principal atribuído
+  chairOrTable   String?       // "Cadeira 01", "Mesa 02", "Balcão"
+
+  // Auditoria de Abertura e Fechamento
+  openedByUserId String?       @db.ObjectId
+  openedByName   String?       // Nome do usuário/colaborador que abriu a comanda
+  closedByUserId String?       @db.ObjectId
+  closedByName   String?       // Nome do usuário/colaborador que finalizou o checkout
+
+  subtotal      Float          @default(0.0)
+  discount      Float          @default(0.0)
+  discountType  String?        @default("FIXED") // FIXED (R$) ou PERCENT (%)
+  total         Float          @default(0.0)
+
+  // Rateio & Lucratividade Real
+  costTotal       Float        @default(0.0) // Soma do preço de custo dos produtos
+  totalCommission Float        @default(0.0) // Total a repassar para a equipe
+  netProfit       Float        @default(0.0) // Lucro líquido retido: total - costTotal - totalCommission
+
+  paymentMethod PaymentMethod?
+  splitPayments Json?          // Lista de pagamentos: [{ method: "PIX", amount: 50 }, { method: "CASH", amount: 30, change: 5 }]
+  cashReceived  Float?         // Valor entregue em dinheiro
+  cashChange    Float?         // Troco calculado
+
+  notes         String?
+
+  items         OrderItem[]
+  appointments  Appointment[]
+  transactions  FinancialTransaction[]
+
+  openedAt      DateTime       @default(now())
+  closedAt      DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([businessId])
+  @@index([status])
+  @@index([clientId])
+}
+
+model OrderItem {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  orderId         String        @db.ObjectId
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  itemType        String        @default("SERVICE") // "SERVICE" ou "PRODUCT"
+  serviceId       String?       @db.ObjectId
+  service         Service?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  productId       String?       @db.ObjectId
+  product         Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  professionalId  String?       @db.ObjectId // Profissional que executou o serviço ou vendeu o produto
+  professional    Professional? @relation(fields: [professionalId], references: [id], onDelete: SetNull)
+
+  // Auditoria
+  addedByUserId   String?       @db.ObjectId
+  addedByName     String?
+
+  name            String        // Nome do item no momento da venda
+  quantity        Int           @default(1)
+  unitPrice       Float
+  costPrice       Float?        @default(0.0) // Preço de custo unitário no momento
+  totalPrice      Float
+
+  commissionRate  Float         @default(0.0) // % de comissão aplicada
+  commissionValue Float         @default(0.0) // R$ a ser pago ao profissional
+
+  createdAt       DateTime      @default(now())
+
+  @@index([orderId])
+  @@index([serviceId])
+  @@index([productId])
+  @@index([professionalId])
+}
+
+// ----------------------------------------------------
+// FINANCEIRO, FLUXO DE CAIXA & REPASSES
+// ----------------------------------------------------
+
+model FinancialTransaction {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String   @db.ObjectId
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  orderId String? @db.ObjectId
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  // Conta de Origem ou Destino
+  accountId String?           @db.ObjectId
+  account   FinancialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  // Para transferências entre contas internas (Conta Destino)
+  toAccountId String? @db.ObjectId
+
+  type          TransactionType
+  category      String // Venda, Comissão, Despesa Estoque, Limpeza, Transferência, etc.
+  description   String
+  amount        Float
+  paymentMethod PaymentMethod?
+
+  isPaid  Boolean   @default(true)
+  dueDate DateTime?
+  paidAt  DateTime? @default(now())
+
+  // Auditoria
+  createdById   String?   @db.ObjectId
+  createdByName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([accountId])
+}
+
+// ----------------------------------------------------
+// CONTAS CORRENTES, CAIXAS & CARTEIRAS (MULTIBANCO)
+// ----------------------------------------------------
+
+model FinancialAccount {
+  id         String               @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String               @db.ObjectId
+  business   Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name       String               // Ex: "Conta Bradesco PJ", "Caixa Balcão (Gaveta)", "Conta Stone"
+  type       FinancialAccountType @default(CHECKING_ACCOUNT)
+  bankName   String?              // "Bradesco", "Nubank", "Itaú", "Inter", "Stone", "Mumbuca", etc.
+
+  initialBalance Float            @default(0.0)
+  currentBalance Float            @default(0.0)
+
+  agency        String?
+  accountNumber String?
+  pixKey        String?
+
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+  color     String? @default("emerald") // emerald, blue, purple, amber, rose, slate
+
+  // Auditoria
+  createdById   String?  @db.ObjectId
+  createdByName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions   FinancialTransaction[]
+  paymentMethods PaymentMethodConfig[]
+
+  @@index([businessId])
+  @@index([isActive])
+}
+
+// ----------------------------------------------------
+// FORMAS E MEIOS DE PAGAMENTO (CONFIGURÁVEL POR ESPAÇO)
+// ----------------------------------------------------
+
+model PaymentMethodConfig {
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  businessId    String            @db.ObjectId
+  business      Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  // Conta Financeira de Destino onde o dinheiro cai
+  accountId     String?           @db.ObjectId
+  account       FinancialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  name          String            // Ex: "PIX Instantâneo", "Cartão Cidadão Maricá", "Stone Débito", "Alelo/Ticket"
+  type          PaymentMethodType @default(OTHER)
+
+  // Taxa da Operadora / Maquininha (%)
+  feePercentage Float?            @default(0.0)
+
+  // Prazo de Liquidação / Recebimento em dias (0 = D+0, 1 = D+1, 30 = D+30)
+  payoutDays    Int?              @default(0)
+
+  // Detalhes adicionais, chave PIX ou instruções
+  details       String?
+  pixKey        String?
+  pixKeyType    String?           // CPF, CNPJ, EMAIL, PHONE, RANDOM
+
+  // Controle de exibição no PDV
+  isDefault     Boolean           @default(false) // Se é um dos padrões de fábrica
+  isActive      Boolean           @default(true)  // Ativo para checkout no PDV
+  order         Int               @default(0)     // Ordem de exibição na tela
+
+  // Auditoria
+  createdById   String?           @db.ObjectId
+  createdByName String?
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([businessId])
+  @@index([accountId])
+  @@index([isActive])
+}
+
+// ----------------------------------------------------
+// CLUBE DE ASSINATURAS (RECORRÊNCIA PARA SALÕES/BARBEARIAS)
+// ----------------------------------------------------
+
+model SubscriptionPlan {
+  id                     String        @id @default(auto()) @map("_id") @db.ObjectId
+  businessId             String        @db.ObjectId
+  business               Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name                   String        // Ex: Clube VIP Barba & Cabelo Ilimitado
+  description            String?
+  priceMonthly           Float         // Valor em R$
+  billingCycle           BillingCycle  @default(MONTHLY)
+  badge                  String?       // "Mais Popular", "VIP", etc.
+
+  // Serviços Inclusos e Regras
+  includedServiceIds     String[]      @db.ObjectId
+  servicesRules          Json?         // [{ serviceId: "...", name: "Corte", limitType: "UNLIMITED" | "FIXED", monthlyLimit: 4 }]
+  productDiscountPercent Float?        @default(0.0) // Desconto % em produtos para assinantes
+
+  // Sistema de Indicação Multinível
+  referralEnabled        Boolean       @default(false)
+  referralRates          Json?         // [{ level: 1, percentage: 10.0, label: "Indicação Direta" }, ...]
+
+  isActive               Boolean       @default(true)
+  order                  Int           @default(0)
+
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  deletedAt              DateTime?     // Soft Delete para manter integridade histórica de assinantes
+
+  @@index([businessId])
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
+// ----------------------------------------------------
+// RECURSOS & SUB-RECURSOS DA PLATAFORMA (SAAS FEATURES)
+// ----------------------------------------------------
+
+model PlatformFeature {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  code        String   @unique // Ex: "agenda", "financeiro", "financeiro.comissoes", "crm_clientes"
+  name        String   // Ex: "Controle Financeiro", "Relatório de Comissões"
+  description String?
+  icon        String?  // Nome do ícone Lucide: "Wallet", "Calendar", "Sparkles", etc.
+  menuPath    String?  // Rota do menu: "/app/financeiro", "/app/crm", etc.
+  
+  // Hierarquia Pai -> Filhos (Sub-recursos)
+  parentId    String?           @db.ObjectId
+  parent      PlatformFeature?  @relation("FeatureHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    PlatformFeature[] @relation("FeatureHierarchy")
+
+  // Relação M:N com PlatformPlan
+  planIds     String[]          @db.ObjectId
+  plans       PlatformPlan[]    @relation(fields: [planIds], references: [id])
+
+  order       Int               @default(0)
+  isActive    Boolean           @default(true)
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([parentId])
+  @@index([order])
+}
+
+// ----------------------------------------------------
+// PLANOS DE ASSINATURA DA PLATAFORMA (SAAS VISUALCLUBE)
+// ----------------------------------------------------
+
+model PlatformPlan {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug             String   @unique // "start", "pro", "elite"
+  name             String   // "Start", "Profissional Pro", "Elite Multi-Unidades"
+  description      String?
+  badge            String?  // "Iniciante", "Mais Popular", "Empresarial"
+  
+  // Valores e Ciclo
+  priceMonthly     Float    // Ex: 69.90
+  priceYearly      Float    // Ex: 49.90 (valor mensal equivalente faturado anual)
+  trialDays        Int      @default(7)
+
+  // Recursos e Limites de Sistema
+  maxProfessionals Int      @default(2) // -1 = Ilimitado
+  hasWhatsappBot   Boolean  @default(false)
+  hasVipClub       Boolean  @default(false)
+  hasMultiUnits    Boolean  @default(false)
+  features         String[] // Bullets visuais inclusos (marketing)
+  notIncluded      String[] // Bullets visuais não inclusos
+
+  // Relação com os Recursos Habilitados da Plataforma
+  featureIds       String[]          @db.ObjectId
+  platformFeatures PlatformFeature[] @relation(fields: [featureIds], references: [id])
+
+  // ----------------------------------------------------
+  // MATRIZ DE INDICAÇÃO & COMISSIONAMENTO POR NÍVEL (JSON)
+  // Formato: [
+  //   { "level": 1, "percentage": 20.0 },
+  //   { "level": 2, "percentage": 10.0 },
+  //   { "level": 3, "percentage": 5.0 }
+  // ]
+  // ----------------------------------------------------
+  referralRates    Json?
+
+  isActive         Boolean  @default(true)
+  order            Int      @default(0) // Ordem de exibição na tela (1, 2, 3)
+
+  subscriptions    UserPlatformSubscription[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model UserPlatformSubscription {
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  
+  userId              String             @db.ObjectId
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  businessId          String?            @db.ObjectId
+  business            Business?          @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  planId              String             @db.ObjectId
+  plan                PlatformPlan       @relation(fields: [planId], references: [id])
+
+  status              SubscriptionStatus @default(TRIALING)
+  billingCycle        BillingCycle       @default(MONTHLY)
+
+  pricePaid           Float              @default(0.0)
+
+  trialStartsAt       DateTime?
+  trialEndsAt         DateTime?
+  currentPeriodStart  DateTime           @default(now())
+  currentPeriodEnd    DateTime
+
+  canceledAt          DateTime?
+
+  // Provedor de Pagamento (MercadoPago / Asaas / Stripe / Pix)
+  paymentProvider     String?
+  externalSubscriptionId String?
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([businessId])
+  @@index([status])
+}
+
+
