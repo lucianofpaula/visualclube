@@ -37,6 +37,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Logo, LogoIcon } from "@/components/ui/logo"
 import { cn } from "@/lib/utils"
 import { handleSignOut } from "@/actions/auth-actions"
 import { PlansModal } from "@/components/app/plans-modal"
@@ -393,20 +394,12 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
             )}>
               {isExpanded ? (
                 <>
-                  <Link href="/app" className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-indigo-600 text-white font-black text-lg shadow-md">
-                      V
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-extrabold text-base tracking-tight text-foreground flex items-center gap-1.5">
-                        VisualClube
-                        <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                          SaaS
-                        </span>
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">Gestão de Espaços</span>
-                    </div>
-                  </Link>
+                  <Logo
+                    href="/app"
+                    size="sm"
+                    badgeText="SaaS"
+                    subtitle="Gestão de Espaços"
+                  />
 
                   <div className="flex items-center gap-1">
                     <button
@@ -429,10 +422,10 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
                 <div className="flex flex-col items-center justify-center">
                   <Link
                     href="/app"
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-indigo-600 text-white font-black text-lg shadow-md hover:scale-105 transition-transform"
+                    className="p-1 rounded-xl hover:scale-105 transition-transform"
                     title="VisualClube - Início"
                   >
-                    V
+                    <LogoIcon size={32} />
                   </Link>
                 </div>
               )}

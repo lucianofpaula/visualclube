@@ -30,6 +30,15 @@ export const metadata: Metadata = {
     "visualclube"
   ],
   authors: [{ name: "VisualClube Tech" }],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({

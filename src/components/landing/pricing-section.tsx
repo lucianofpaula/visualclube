@@ -20,7 +20,7 @@ interface PricingProps {
 }
 
 export function PricingSection({ onOpenAuth }: PricingProps) {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual")
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly")
 
   const plans = [
     {
@@ -147,15 +147,16 @@ export function PricingSection({ onOpenAuth }: PricingProps) {
               <Card
                 key={idx}
                 className={cn(
-                  "relative flex flex-col justify-between transition-all duration-300 rounded-3xl",
+                  "relative flex flex-col justify-between transition-all duration-300 rounded-3xl overflow-visible",
                   plan.popular
-                    ? "border-2 border-emerald-500/80 shadow-2xl bg-card/90 ring-4 ring-emerald-500/10 md:-translate-y-2"
+                    ? "border-2 border-emerald-500/80 shadow-2xl bg-card/90 ring-4 ring-emerald-500/15 md:-translate-y-2"
                     : "border-border/60 bg-card/60 hover:border-border"
                 )}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold uppercase tracking-wider shadow-md">
-                    ⭐ Escolha Mais Recomendada
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap px-4 py-1 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 text-white text-[11px] font-extrabold uppercase tracking-wider shadow-lg shadow-emerald-500/30 border border-emerald-300/30 flex items-center gap-1.5 pointer-events-none select-none">
+                    <Sparkles className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
+                    <span>Escolha Mais Recomendada</span>
                   </div>
                 )}
 

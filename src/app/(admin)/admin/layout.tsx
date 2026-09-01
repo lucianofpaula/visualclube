@@ -10,11 +10,13 @@ import {
   Users, 
   ArrowLeft,
   LayoutDashboard,
-  Sparkles
+  Sparkles,
+  KeyRound
 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/ui/logo"
 
 export const dynamic = "force-dynamic"
 
@@ -44,18 +46,12 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
       {/* Top Admin Navbar */}
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-md px-4 sm:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/admin" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-teal-500 text-white font-black text-base shadow-md">
-              A
-            </div>
-            <div className="flex flex-col">
-              <span className="font-black text-sm tracking-tight text-foreground flex items-center gap-1.5">
-                VisualClube Admin
-                <Badge variant="purple" className="text-[9px] px-1.5 py-0">SaaS Master</Badge>
-              </span>
-              <span className="text-[10px] text-muted-foreground">Gestão de Recursos & Planos</span>
-            </div>
-          </Link>
+          <Logo
+            href="/admin"
+            size="sm"
+            badgeText="SaaS Master"
+            subtitle="Gestão de Recursos & Planos"
+          />
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1">
@@ -79,6 +75,13 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             >
               <CreditCard className="h-3.5 w-3.5 text-emerald-500" />
               <span>Planos SaaS</span>
+            </Link>
+            <Link
+              href="/admin/gateway"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors flex items-center gap-1.5"
+            >
+              <KeyRound className="h-3.5 w-3.5 text-amber-500" />
+              <span>Gateway & Mercado Pago</span>
             </Link>
           </nav>
         </div>

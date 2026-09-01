@@ -11,6 +11,7 @@ import {
   Share2,
   MapPin
 } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 export function Footer() {
   return (
@@ -19,14 +20,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-12 border-b border-border/60">
           {/* Col 1: Brand */}
           <div className="col-span-2 space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-indigo-600 shadow-md">
-                <span className="text-white font-black text-lg">V</span>
-              </div>
-              <span className="font-extrabold text-lg text-foreground tracking-tight">
-                VisualClube
-              </span>
-            </div>
+            <Logo size="sm" showBadge={false} />
 
             <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">
               A plataforma inteligente para barbearias, salões de beleza, esmalterias e clínicas de estética que buscam agilidade, faturamento previsível e gestão financeira sem dor de cabeça.

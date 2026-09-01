@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Logo } from "@/components/ui/logo"
 import { getCurrentUserAction, handleSignOut } from "@/actions/auth-actions"
 import { cn } from "@/lib/utils"
 
@@ -96,23 +97,7 @@ export function Navbar({ onOpenAuth }: NavbarProps) {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 flex items-center justify-between gap-4">
         
         {/* Brand Logo */}
-        <a href="#" className="flex items-center gap-2.5 group shrink-0">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-indigo-600 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-            <span className="text-white font-black text-xl tracking-wider">V</span>
-            <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 border-2 border-background animate-pulse" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-xl tracking-tight text-foreground flex items-center gap-1.5 leading-none">
-              VisualClube
-              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                PRO
-              </span>
-            </span>
-            <span className="text-[11px] text-muted-foreground font-medium mt-0.5 hidden sm:block">
-              Gestão para Barbearias & Estética
-            </span>
-          </div>
-        </a>
+        <Logo href="#" subtitle="Gestão para Barbearias & Estética" />
 
         {/* Desktop Navigation Links - Com espaçamento expandido e sem quebra */}
         <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

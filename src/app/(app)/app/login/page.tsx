@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Logo } from "@/components/ui/logo"
 import { cn, formatSmartIdentifier } from "@/lib/utils"
 import { loginWithCredentials, registerUser, checkEmailExists, checkPhoneExists } from "@/actions/auth-actions"
 import { registerUserSchema, type RegisterUserInput } from "@/lib/schemas/register-user.schema"
@@ -211,20 +212,9 @@ export default function AppLoginPage() {
       <div className="w-full max-w-lg space-y-6 my-8">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-1">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-indigo-600 text-white font-black text-2xl shadow-xl">
-              V
-            </div>
-            <div className="text-left">
-              <span className="font-extrabold text-xl tracking-tight text-foreground flex items-center gap-1.5">
-                VisualClube
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  SaaS
-                </span>
-              </span>
-              <span className="text-[11px] block text-muted-foreground">Gestão de Espaços</span>
-            </div>
-          </Link>
+          <div className="flex justify-center mb-1">
+            <Logo href="/" size="md" badgeText="SaaS" subtitle="Gestão de Espaços & Beleza" />
+          </div>
 
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
             {mode === "login" ? "Acessar Painel do Espaço" : "Criar Conta Gratuita"}

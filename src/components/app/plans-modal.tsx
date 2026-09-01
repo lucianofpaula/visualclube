@@ -7,14 +7,15 @@ import {
   Sparkles, 
   ArrowRight, 
   ShieldCheck, 
-  X,
-  Loader2
+  X, 
+  Loader2,
+  CreditCard
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { activateTrialOrSubscribe, PlatformPlanDTO } from "@/actions/subscription-actions"
+import { activateTrialOrSubscribe, createMercadoPagoCheckoutSession, PlatformPlanDTO } from "@/actions/subscription-actions"
 
 interface PlansModalProps {
   isOpen: boolean
@@ -38,12 +39,15 @@ export function PlansModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
+  const [activeAction, setActiveAction] = useState<"trial" | "checkout" | null>(null)
+
   if (!isOpen) return null
 
   const handleActivatePlan = (slug: string) => {
     setErrorMsg(null)
     setSuccessMsg(null)
     setSelectedPlanSlug(slug)
+    setActiveAction("trial")
 
     startTransition(async () => {
       const res = await activateTrialOrSubscribe({
@@ -66,11 +70,33 @@ export function PlansModal({
     })
   }
 
+  const handleMercadoPagoCheckout = (slug: string) => {
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    setSelectedPlanSlug(slug)
+    setActiveAction("checkout")
+
+    startTransition(async () => {
+      const res = await createMercadoPagoCheckoutSession({
+        planSlug: slug,
+        billingCycle,
+      })
+
+      if (res.success && res.checkoutUrl) {
+        setSuccessMsg("Redirecionando para o Mercado Pago...")
+        window.location.href = res.checkoutUrl
+      } else {
+        setErrorMsg(res.error || "Não foi possível iniciar o pagamento com Mercado Pago.")
+      }
+    })
+  }
+
   const renderPlanCard = (plan: PlatformPlanDTO, isMobileView: boolean = false) => {
     const price = billingCycle === "YEARLY" ? plan.priceYearly : plan.priceMonthly
     const isPopular = plan.slug === "pro"
     const isCurrent = currentPlanSlug === plan.slug
-    const isSelectingThis = isPending && selectedPlanSlug === plan.slug
+    const isSelectingThisTrial = isPending && selectedPlanSlug === plan.slug && activeAction === "trial"
+    const isSelectingThisCheckout = isPending && selectedPlanSlug === plan.slug && activeAction === "checkout"
 
     return (
       <Card
@@ -144,28 +170,48 @@ export function PlansModal({
           </CardContent>
         </div>
 
-        <CardFooter className="pt-4 pb-4">
+        <CardFooter className="pt-4 pb-4 flex flex-col gap-2">
+          {/* Botão Principal: Assinar com Mercado Pago */}
           <Button
-            onClick={() => handleActivatePlan(plan.slug)}
+            onClick={() => handleMercadoPagoCheckout(plan.slug)}
             disabled={isPending || isCurrent}
             className={cn(
-              "w-full h-11 text-xs font-bold rounded-xl transition-all shadow-md",
+              "w-full h-11 text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5",
               isPopular
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20"
-                : "bg-primary text-primary-foreground hover:opacity-90"
+                : "bg-indigo-600 hover:bg-indigo-500 text-white"
             )}
           >
-            {isSelectingThis ? (
+            {isSelectingThisCheckout ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : isCurrent ? (
               "Plano Atual"
             ) : (
               <>
-                Testar 7 Dias Grátis
-                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                <CreditCard className="h-3.5 w-3.5" />
+                Assinar via Mercado Pago
               </>
             )}
           </Button>
+
+          {/* Botão Secundário: Testar 7 Dias Grátis */}
+          {!isCurrent && (
+            <Button
+              variant="ghost"
+              onClick={() => handleActivatePlan(plan.slug)}
+              disabled={isPending}
+              className="w-full h-8 text-[11px] font-semibold text-muted-foreground hover:text-foreground rounded-lg"
+            >
+              {isSelectingThisTrial ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+              ) : (
+                <>
+                  Ou testar 7 dias grátis sem cartão
+                  <ArrowRight className="h-3 w-3 ml-1" />
+                </>
+              )}
+            </Button>
+          )}
         </CardFooter>
       </Card>
     )

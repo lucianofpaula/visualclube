@@ -1170,4 +1170,24 @@ model UserPlatformSubscription {
   @@index([status])
 }
 
+model PlatformGatewayConfig {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  provider           String   @unique @default("MERCADOPAGO") // "MERCADOPAGO"
+  isSandbox          Boolean  @default(true)
+  
+  // Credenciais de Sandbox / Testes
+  sandboxPublicKey   String?
+  sandboxAccessToken String?
+  
+  // Credenciais de Produção
+  prodPublicKey      String?
+  prodAccessToken    String?
+  
+  webhookSecret      String?
+  isActive           Boolean  @default(true)
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 

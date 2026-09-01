@@ -3,6 +3,9 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
+import { Preference } from "mercadopago"
+import { getMercadoPagoClient } from "@/lib/mercadopago"
 
 export interface PlatformPlanDTO {
   id: string
@@ -342,6 +345,109 @@ export async function activateTrialOrSubscribe(data: {
     success: true,
     message: `Plano ${plan.name} ativado com sucesso por 7 dias grátis!`,
     subscriptionId: subscription.id,
+  }
+}
+
+/**
+ * Cria uma sessão de Checkout Pro do Mercado Pago para assinatura do plano
+ */
+export async function createMercadoPagoCheckoutSession(data: {
+  planSlug: string
+  billingCycle: "MONTHLY" | "YEARLY"
+}) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { success: false, error: "Você precisa estar autenticado para assinar um plano." }
+  }
+
+  const plan = await prisma.platformPlan.findUnique({
+    where: { slug: data.planSlug },
+  })
+
+  if (!plan) {
+    return { success: false, error: "Plano selecionado não foi encontrado." }
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      businessId: true,
+    },
+  })
+
+  if (!user) {
+    return { success: false, error: "Usuário não encontrado." }
+  }
+
+  try {
+    const { client, isSandbox } = await getMercadoPagoClient()
+
+    const headersList = await headers()
+    const host = headersList.get("host") || "localhost:3000"
+    const protocol = headersList.get("x-forwarded-proto") || (host.startsWith("localhost") ? "http" : "https")
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.APP_URL || `${protocol}://${host}`
+
+    const price = data.billingCycle === "YEARLY" ? plan.priceYearly * 12 : plan.priceMonthly
+    const cycleLabel = data.billingCycle === "YEARLY" ? "Anual" : "Mensal"
+
+    const preference = new Preference(client)
+    const preferenceResponse = await preference.create({
+      body: {
+        items: [
+          {
+            id: plan.id,
+            title: `VisualClube SaaS - ${plan.name} (${cycleLabel})`,
+            description: `Assinatura ${cycleLabel.toLowerCase()} do plano ${plan.name} para a plataforma VisualClube.`,
+            quantity: 1,
+            unit_price: Number(price.toFixed(2)),
+            currency_id: "BRL",
+          },
+        ],
+        payer: {
+          name: user.name || "Cliente VisualClube",
+          email: user.email || undefined,
+        },
+        back_urls: {
+          success: `${baseUrl}/app?payment=success&plan=${plan.slug}`,
+          failure: `${baseUrl}/app?payment=failure`,
+          pending: `${baseUrl}/app?payment=pending`,
+        },
+        auto_return: "approved",
+        notification_url: `${baseUrl}/api/webhooks/mercadopago`,
+        external_reference: JSON.stringify({
+          userId: user.id,
+          businessId: user.businessId,
+          planId: plan.id,
+          billingCycle: data.billingCycle,
+          pricePaid: price,
+        }),
+        statement_descriptor: "VISUALCLUBE",
+        binary_mode: false,
+      },
+    })
+
+    const checkoutUrl = isSandbox
+      ? (preferenceResponse.sandbox_init_point || preferenceResponse.init_point)
+      : preferenceResponse.init_point
+
+    if (!checkoutUrl) {
+      return { success: false, error: "Não foi possível obter o link de checkout do Mercado Pago." }
+    }
+
+    return {
+      success: true,
+      checkoutUrl,
+      preferenceId: preferenceResponse.id,
+    }
+  } catch (error: any) {
+    console.error("Erro ao gerar checkout do Mercado Pago:", error)
+    return {
+      success: false,
+      error: error.message || "Erro ao conectar com o Mercado Pago. Verifique as configurações no Admin.",
+    }
   }
 }
 
