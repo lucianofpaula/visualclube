@@ -582,12 +582,13 @@ export async function removeItemFromOrderAction(orderId: string, itemId: string)
  */
 export async function checkoutOrderAction(params: {
   orderId: string
-  paymentMethod: "PIX" | "CREDIT_CARD" | "DEBIT_CARD" | "CASH" | "SPLIT_PAYMENT" | "SUBSCRIPTION_CLUB"
+  paymentMethod: "PIX" | "CREDIT_CARD" | "DEBIT_CARD" | "CASH" | "SPLIT_PAYMENT" | "SUBSCRIPTION_CLUB" | "CUSTOMER_TAB"
   splitPayments?: Array<{ method: string; amount: number; label?: string }>
   discount?: number
   discountType?: "FIXED" | "PERCENT"
   cashReceived?: number
   notes?: string
+  customerDebtDueDate?: string
 }) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -603,7 +604,7 @@ export async function checkoutOrderAction(params: {
     return { success: false, error: "Estabelecimento não encontrado." }
   }
 
-  const { orderId, paymentMethod, splitPayments, discount = 0, discountType = "FIXED", cashReceived, notes } = params
+  const { orderId, paymentMethod, splitPayments, discount = 0, discountType = "FIXED", cashReceived, notes, customerDebtDueDate } = params
 
   try {
     const order = await (prisma.order as any).findUnique({
@@ -650,6 +651,54 @@ export async function checkoutOrderAction(params: {
 
     const now = new Date()
 
+    // 0. Busca sessão de caixa aberta para vincular (apenas para pagamentos à vista/dinheiro/cartão/pix)
+    const activeCashSession = await (prisma as any).cashRegisterSession.findFirst({
+      where: {
+        businessId: currentUser.businessId,
+        status: "OPEN",
+      },
+      select: { id: true, financialAccountId: true },
+    })
+
+    // Se for Pagar Depois / Fiado (CUSTOMER_TAB), garante que existe um cliente vinculado
+    let finalClientId = order.clientId
+
+    if (paymentMethod === "CUSTOMER_TAB") {
+      if (!finalClientId) {
+        // Tenta buscar por telefone ou criar cliente rápido
+        const cleanPhone = order.clientPhone ? order.clientPhone.replace(/\D/g, "") : ""
+        if (cleanPhone) {
+          const existingUser = await prisma.user.findFirst({
+            where: {
+              OR: [{ phone: cleanPhone }, { phone: `55${cleanPhone}` }],
+            },
+          })
+          if (existingUser) {
+            finalClientId = existingUser.id
+          } else {
+            const newClient = await prisma.user.create({
+              data: {
+                name: order.clientName || "Cliente Conta Cliente",
+                phone: cleanPhone,
+                role: "USER",
+                businessId: currentUser.businessId,
+              },
+            })
+            finalClientId = newClient.id
+          }
+        } else {
+          const newClient = await prisma.user.create({
+            data: {
+              name: order.clientName || "Cliente Balcão (Conta Cliente)",
+              role: "USER",
+              businessId: currentUser.businessId,
+            },
+          })
+          finalClientId = newClient.id
+        }
+      }
+    }
+
     // 1. Atualizar a comanda com dados de fechamento e auditoria
     const updatedOrder = await (prisma.order as any).update({
       where: { id: order.id },
@@ -663,6 +712,8 @@ export async function checkoutOrderAction(params: {
         netProfit,
         cashReceived: cashReceived || null,
         cashChange,
+        clientId: finalClientId || order.clientId,
+        cashSessionId: activeCashSession?.id || null,
         closedByUserId: currentUser.id,
         closedByName: currentUser.name || "Operador",
         closedAt: now,
@@ -673,22 +724,50 @@ export async function checkoutOrderAction(params: {
       },
     })
 
-    // 2. Gerar lançamento no Financeiro (Entrada de Caixa)
+    // 2. Se for Pagar Depois (Conta Cliente), cria o registro de CustomerDebt
+    if (paymentMethod === "CUSTOMER_TAB" && finalClientId) {
+      await (prisma as any).customerDebt.create({
+        data: {
+          businessId: currentUser.businessId,
+          clientId: finalClientId,
+          orderId: order.id,
+          description: `Consumo Comanda #${order.code} (${order.clientName || "Cliente"})`,
+          totalAmount: finalTotal,
+          paidAmount: 0.0,
+          remainingAmount: finalTotal,
+          status: "PENDING",
+          dueDate: customerDebtDueDate ? new Date(customerDebtDueDate) : null,
+          notes: notes?.trim() || null,
+          createdById: currentUser.id,
+          createdByName: currentUser.name || "Operador",
+        },
+      })
+    }
+
+    // 3. Gerar lançamento no Financeiro
+    const isDeferred = paymentMethod === "CUSTOMER_TAB"
     await prisma.financialTransaction.create({
       data: {
         businessId: currentUser.businessId,
         orderId: order.id,
+        cashSessionId: isDeferred ? null : (activeCashSession?.id || null),
+        accountId: isDeferred ? null : (activeCashSession?.financialAccountId || null),
         type: "INCOME",
-        category: "Vendas / Comandas",
-        description: `Recebimento ${order.code} - ${order.clientName || "Balcão"}`,
+        category: isDeferred ? "Contas a Receber / Conta Cliente" : "Vendas / Comandas",
+        description: isDeferred
+          ? `Venda a Prazo (Conta Cliente) ${order.code} - ${order.clientName || "Cliente"}`
+          : `Recebimento ${order.code} - ${order.clientName || "Balcão"}`,
         amount: finalTotal,
         paymentMethod: paymentMethod as any,
-        isPaid: true,
-        paidAt: now,
+        isPaid: !isDeferred,
+        dueDate: isDeferred && customerDebtDueDate ? new Date(customerDebtDueDate) : null,
+        paidAt: isDeferred ? null : now,
+        createdById: currentUser.id,
+        createdByName: currentUser.name || "Operador",
       },
     })
 
-    // 3. Se houver agendamento vinculado a esta comanda, marca como COMPLETED na Agenda
+    // 4. Se houver agendamento vinculado a esta comanda, marca como COMPLETED na Agenda
     await prisma.appointment.updateMany({
       where: {
         businessId: currentUser.businessId,
@@ -708,7 +787,9 @@ export async function checkoutOrderAction(params: {
       success: true,
       order: updatedOrder,
       cashChange,
-      message: `Comanda ${order.code} finalizada com sucesso!`,
+      message: paymentMethod === "CUSTOMER_TAB"
+        ? `Comanda ${order.code} registrada como "Pagar Depois (Conta Cliente)" com sucesso!`
+        : `Comanda ${order.code} finalizada com sucesso!`,
     }
   } catch (error: any) {
     console.error("Erro ao fechar comanda:", error)

@@ -39,7 +39,8 @@ import {
   Link as LinkIcon,
   Copy,
   Clock,
-  UserPlus
+  UserPlus,
+  DollarSign
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -500,7 +501,15 @@ export default function EquipePage() {
         </div>
 
         {/* Botões de Ação */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            href="/app/financeiro/comissoes"
+            className="h-10 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs gap-1.5 shadow-md flex items-center transition-all hover:scale-105"
+          >
+            <DollarSign className="h-4 w-4" />
+            <span>Fechamento de Comissões</span>
+          </Link>
+
           <Button
             onClick={handleOpenInviteModal}
             className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs gap-1.5 shadow-md shadow-emerald-600/20 hover:scale-105 transition-all"

@@ -101,9 +101,7 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [plansModalOpen, setPlansModalOpen] = useState(false)
-  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({
-    meu_negocio: true,
-  })
+  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({})
 
   // Detecta se está especificamente na Agenda para recolher a barra lateral automaticamente
   const isAgendaRoute = pathname === "/app/agenda" || pathname.startsWith("/app/agenda/")
@@ -202,7 +200,7 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
           continue
         }
 
-        // Se for o recurso Financeiro (Caixa & Extrato + Contas & Carteiras + Meios de Pagamento)
+        // Se for o recurso Financeiro (Caixa, Comissões, Fiados, Fluxo de Caixa, Contas & Carteiras, Meios de Pagamento)
         if (feat.code === "financeiro") {
           items.push({
             id: feat.id || feat.code,
@@ -210,6 +208,9 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
             icon: IconComponent || Wallet,
             featureCode: feat.code,
             children: [
+              { id: "caixa_turno", label: "Caixa & Turno (PDV)", href: "/app/financeiro/caixa", featureCode: "financeiro" },
+              { id: "comissoes_repasses", label: "Comissões & Repasses", href: "/app/financeiro/comissoes", featureCode: "financeiro" },
+              { id: "fiados_contas", label: "Contas a Receber (Pagar Depois)", href: "/app/financeiro/fiados", featureCode: "financeiro" },
               { id: "fluxo_caixa", label: "Fluxo de Caixa & Extrato", href: "/app/financeiro", featureCode: "financeiro" },
               { id: "contas_carteiras", label: "Contas & Carteiras", href: "/app/financeiro/contas", featureCode: "financeiro" },
               { id: "meios_pagamento", label: "Meios de Pagamento", href: "/app/financeiro/meios-de-pagamento", featureCode: "financeiro" },
@@ -218,45 +219,28 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
           continue
         }
 
-        // Se for o recurso Clube de Assinaturas (Planos do Clube + Configuração do Clube)
+        // Se for o recurso Clube de Assinaturas (Link direto)
         if (feat.code === "clube_vip") {
           items.push({
             id: feat.id || feat.code,
             label: "Clube de Assinaturas",
+            href: "/app/clube",
             icon: IconComponent || Sparkles,
             featureCode: feat.code,
-            children: [
-              { id: "clube_planos", label: "Planos do Clube", href: "/app/clube", featureCode: "clube_vip" },
-              { id: "clube_config", label: "Configuração do Clube", href: "/app/clube/configuracoes", featureCode: "clube_vip" },
-            ],
+            badge: null,
           })
           continue
         }
 
-        // Outros recursos do catálogo com sub-recursos
-        if (feat.children && feat.children.length > 0) {
-          items.push({
-            id: feat.id || feat.code,
-            label: feat.name,
-            icon: IconComponent,
-            featureCode: feat.code,
-            children: feat.children.map((c) => ({
-              id: c.id || c.code,
-              label: c.name,
-              href: c.menuPath || feat.menuPath || `/app/${feat.code.replace(/_/g, "-")}`,
-              featureCode: c.code,
-            })),
-          })
-        } else {
-          items.push({
-            id: feat.id || feat.code,
-            label: feat.name,
-            href: feat.menuPath || `/app/${feat.code.replace(/_/g, "-")}`,
-            icon: IconComponent,
-            featureCode: feat.code,
-            badge: null,
-          })
-        }
+        // Demais recursos do catálogo como links diretos no menu
+        items.push({
+          id: feat.id || feat.code,
+          label: feat.name,
+          href: feat.menuPath || `/app/${feat.code.replace(/_/g, "-")}`,
+          icon: IconComponent,
+          featureCode: feat.code,
+          badge: null,
+        })
       }
 
       // Se ainda não tiver sido inserido a partir do banco, insere o padrão
@@ -296,6 +280,9 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
           icon: Wallet,
           featureCode: "financeiro",
           children: [
+            { id: "caixa_turno", label: "Caixa & Turno (PDV)", href: "/app/financeiro/caixa", featureCode: "financeiro" },
+            { id: "comissoes_repasses", label: "Comissões & Repasses", href: "/app/financeiro/comissoes", featureCode: "financeiro" },
+            { id: "fiados_contas", label: "Contas a Receber (Pagar Depois)", href: "/app/financeiro/fiados", featureCode: "financeiro" },
             { id: "fluxo_caixa", label: "Fluxo de Caixa & Extrato", href: "/app/financeiro", featureCode: "financeiro" },
             { id: "contas_carteiras", label: "Contas & Carteiras", href: "/app/financeiro/contas", featureCode: "financeiro" },
             { id: "meios_pagamento", label: "Meios de Pagamento", href: "/app/financeiro/meios-de-pagamento", featureCode: "financeiro" },
@@ -304,12 +291,9 @@ export function AppShell({ children, plans, subscription, featuresCatalog = [], 
         {
           id: "clube_vip",
           label: "Clube de Assinaturas",
+          href: "/app/clube",
           icon: Sparkles,
           featureCode: "clube_vip",
-          children: [
-            { id: "clube_planos", label: "Planos do Clube", href: "/app/clube", featureCode: "clube_vip" },
-            { id: "clube_config", label: "Configuração do Clube", href: "/app/clube/configuracoes", featureCode: "clube_vip" },
-          ],
         }
       )
     }

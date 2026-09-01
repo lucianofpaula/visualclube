@@ -19,7 +19,11 @@ import {
   Award,
   Building2,
   Plus,
-  Trash2
+  Trash2,
+  FileText,
+  Calendar,
+  Clock,
+  UserCheck
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -53,6 +57,10 @@ export function PosCheckoutModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Fiado / Pagar Depois (Conta do Cliente)
+  const [debtDueDate, setDebtDueDate] = useState<string>("")
+  const [debtNotes, setDebtNotes] = useState<string>("")
+
   // Split Payment Rows
   const [splitRows, setSplitRows] = useState<Array<{ methodId: string; amount: string }>>([
     { methodId: "PIX", amount: "" },
@@ -84,10 +92,11 @@ export function PosCheckoutModal({
 
   // Meio selecionado atualmente
   const isSplit = selectedMethodId === "__SPLIT__"
+  const isCustomerTab = selectedMethodId === "__CUSTOMER_TAB__"
   const currentMethod = activeMethods.find((m) => m.id === selectedMethodId || m.type === selectedMethodId)
 
   // Taxa da Maquininha do meio atual
-  const feePercent = currentMethod?.feePercentage || 0
+  const feePercent = isCustomerTab || isSplit ? 0 : (currentMethod?.feePercentage || 0)
   const feeValue = (finalTotal * feePercent) / 100
   const netProfit = finalTotal - costTotal - totalCommission - feeValue
 
@@ -109,6 +118,12 @@ export function PosCheckoutModal({
 
   const handleQuickCash = (val: number) => {
     setCashReceived(String(val))
+  }
+
+  const handleQuickDueDate = (days: number) => {
+    const d = new Date()
+    d.setDate(d.getDate() + days)
+    setDebtDueDate(d.toISOString().split("T")[0])
   }
 
   const handleConfirmCheckout = async () => {
@@ -138,18 +153,27 @@ export function PosCheckoutModal({
     }
 
     try {
-      const finalPaymentMethodEnum = isSplit 
-        ? "SPLIT_PAYMENT" 
-        : (["PIX", "CREDIT_CARD", "DEBIT_CARD", "CASH"].includes(currentMethod?.type) ? currentMethod.type : "OTHER")
+      let finalPaymentMethodEnum: any = "OTHER"
+
+      if (isCustomerTab) {
+        finalPaymentMethodEnum = "CUSTOMER_TAB"
+      } else if (isSplit) {
+        finalPaymentMethodEnum = "SPLIT_PAYMENT"
+      } else if (["PIX", "CREDIT_CARD", "DEBIT_CARD", "CASH"].includes(currentMethod?.type)) {
+        finalPaymentMethodEnum = currentMethod.type
+      }
 
       const res = await checkoutOrderAction({
         orderId: order.id,
-        paymentMethod: finalPaymentMethodEnum as any,
+        paymentMethod: finalPaymentMethodEnum,
         splitPayments: splitPaymentsPayload,
         discount: numDiscount,
         discountType,
         cashReceived: currentMethod?.type === "CASH" ? numCashReceived : undefined,
-        notes: currentMethod ? `Meio de Pagamento: ${currentMethod.name}` : undefined,
+        notes: isCustomerTab 
+          ? (debtNotes.trim() || `Pagar Depois / Conta do Cliente: ${order.clientName || 'Cliente'}`) 
+          : (currentMethod ? `Meio de Pagamento: ${currentMethod.name}` : undefined),
+        customerDebtDueDate: isCustomerTab && debtDueDate ? debtDueDate : undefined,
       })
 
       if (res.success) {
@@ -265,6 +289,25 @@ export function PosCheckoutModal({
                 <div>
                   <div className="text-xs">Split / Misto</div>
                   <div className="text-[10px] text-muted-foreground font-normal">2 ou mais formas</div>
+                </div>
+              </button>
+
+              {/* Botão Pagar Depois (Fiado / Conta Cliente) */}
+              <button
+                type="button"
+                onClick={() => setSelectedMethodId("__CUSTOMER_TAB__")}
+                className={`p-2.5 rounded-2xl border text-left flex items-center gap-2.5 transition-all text-xs font-semibold ${
+                  isCustomerTab
+                    ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/20 font-black shadow-xs"
+                    : "bg-muted/30 border-border/60 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                }`}
+              >
+                <div className="p-1.5 rounded-lg bg-card border border-border/50 shrink-0">
+                  <FileText className="h-4 w-4 text-amber-500" />
+                </div>
+                <div>
+                  <div className="text-xs">Pagar Depois</div>
+                  <div className="text-[10px] text-muted-foreground font-normal">Conta Cliente (A Prazo)</div>
                 </div>
               </button>
             </div>
@@ -457,6 +500,84 @@ export function PosCheckoutModal({
             </div>
           )}
 
+          {/* Painel do Fiado / Pagar Depois (Conta do Cliente) */}
+          {isCustomerTab && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-foreground block">
+                      Venda a Prazo / Conta do Cliente
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Cliente: <b className="text-foreground">{order.clientName || "Cliente Balcão"}</b>
+                    </span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 font-bold">
+                  A Prazo / Crediário
+                </Badge>
+              </div>
+
+              {/* Data Combinada de Vencimento */}
+              <div className="space-y-1.5 pt-1">
+                <label className="text-[11px] font-bold text-foreground flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5 text-amber-600" />
+                  Data Combinada para Pagamento (Vencimento)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={debtDueDate}
+                    onChange={(e) => setDebtDueDate(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-xl border border-amber-500/40 bg-card text-xs font-bold text-foreground focus:outline-none"
+                  />
+                </div>
+                {/* Botões Rápidos de Vencimento */}
+                <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDueDate(7)}
+                    className="px-2 py-0.5 rounded-lg bg-card border border-border/60 text-[10px] font-bold hover:bg-muted"
+                  >
+                    + 7 dias
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDueDate(15)}
+                    className="px-2 py-0.5 rounded-lg bg-card border border-border/60 text-[10px] font-bold hover:bg-muted"
+                  >
+                    + 15 dias
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDueDate(30)}
+                    className="px-2 py-0.5 rounded-lg bg-card border border-border/60 text-[10px] font-bold hover:bg-muted"
+                  >
+                    + 30 dias (Fim do mês)
+                  </button>
+                </div>
+              </div>
+
+              {/* Observação / Justificativa */}
+              <div className="space-y-1 pt-1">
+                <label className="text-[11px] font-bold text-foreground">
+                  Observações / Acordo (Opcional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Prometeu acertar no próximo corte ou no quinto dia útil..."
+                  value={debtNotes}
+                  onChange={(e) => setDebtNotes(e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-xl border border-amber-500/40 bg-card text-xs text-foreground focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Desconto Opcional */}
           <div className="p-3.5 rounded-2xl border border-border/60 bg-muted/20 space-y-2">
             <div className="flex items-center justify-between">
@@ -512,8 +633,10 @@ export function PosCheckoutModal({
             )}
 
             <div className="flex justify-between items-center text-base font-black pt-2 border-t border-border/60">
-              <span className="text-foreground">TOTAL A COBRAR:</span>
-              <span className="text-xl text-emerald-600 dark:text-emerald-400">
+              <span className="text-foreground">
+                {isCustomerTab ? "TOTAL A REGISTRAR NA CONTA DO CLIENTE:" : "TOTAL A COBRAR:"}
+              </span>
+              <span className={`text-xl ${isCustomerTab ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
                 R$ {finalTotal.toFixed(2).replace(".", ",")}
               </span>
             </div>
@@ -550,10 +673,20 @@ export function PosCheckoutModal({
           <Button
             onClick={handleConfirmCheckout}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs h-10 px-6 rounded-xl shadow-md gap-1.5"
+            className={`text-white font-black text-xs h-10 px-6 rounded-xl shadow-md gap-1.5 ${
+              isCustomerTab
+                ? "bg-amber-600 hover:bg-amber-500"
+                : "bg-emerald-600 hover:bg-emerald-500"
+            }`}
           >
-            <Check className="h-4 w-4" />
-            <span>{loading ? "Confirmando..." : `Confirmar Recebimento (R$ ${finalTotal.toFixed(2)})`}</span>
+            {isCustomerTab ? <FileText className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+            <span>
+              {loading
+                ? "Processando..."
+                : isCustomerTab
+                ? `Confirmar na Conta Cliente (R$ ${finalTotal.toFixed(2)})`
+                : `Confirmar Recebimento (R$ ${finalTotal.toFixed(2)})`}
+            </span>
           </Button>
         </div>
       </div>

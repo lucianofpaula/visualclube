@@ -22,11 +22,16 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  FileText,
+  AlertTriangle,
+  Send
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { getClientDetailsAction, generateClientActivationLinkAction } from "@/actions/client-actions"
+import { generateDebtWhatsAppReminderAction } from "@/actions/debt-actions"
+import { PayDebtModal } from "@/components/crm/pay-debt-modal"
 
 interface Client360DrawerProps {
   clientId: string | null
@@ -35,11 +40,28 @@ interface Client360DrawerProps {
 }
 
 export function Client360Drawer({ clientId, isOpen, onClose }: Client360DrawerProps) {
-  const [activeTab, setActiveTab] = React.useState<"overview" | "history" | "network">("overview")
+  const [activeTab, setActiveTab] = React.useState<"overview" | "history" | "network" | "debts">("overview")
   const [clientData, setClientData] = React.useState<any>(null)
   const [isLoading, setIsLoading] = React.useState(false)
   const [isGeneratingLink, setIsGeneratingLink] = React.useState(false)
   const [copiedLink, setCopiedLink] = React.useState(false)
+
+  // Fiados & Débitos
+  const [payModalOpen, setPayModalOpen] = React.useState(false)
+  const [selectedDebtToPay, setSelectedDebtToPay] = React.useState<any | null>(null)
+  const [loadingDebtWhatsAppId, setLoadingDebtWhatsAppId] = React.useState<string | null>(null)
+
+  const refreshClientData = () => {
+    if (clientId) {
+      getClientDetailsAction(clientId)
+        .then((res) => {
+          if (res.success && res.client) {
+            setClientData(res.client)
+          }
+        })
+        .catch((err) => console.error(err))
+    }
+  }
 
   React.useEffect(() => {
     if (clientId && isOpen) {
@@ -171,6 +193,23 @@ export function Client360Drawer({ clientId, isOpen, onClose }: Client360DrawerPr
               <Sparkles className={cn("h-3.5 w-3.5", activeTab === "network" ? "text-white" : "text-emerald-500")} />
               <span>Rede ({clientData?.networkStats?.totalNetwork || 0})</span>
             </button>
+            <button
+              onClick={() => setActiveTab("debts")}
+              className={cn(
+                "cursor-pointer px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 active:scale-95",
+                activeTab === "debts"
+                  ? "bg-gradient-to-r from-amber-600 via-orange-600 to-amber-500 text-white shadow-md shadow-amber-600/30 border border-amber-400/40 font-black"
+                  : clientData?.hasPendingDebt
+                  ? "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+              )}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              <span>Conta Cliente ({clientData?.customerDebts?.length || 0})</span>
+              {clientData?.hasPendingDebt && (
+                <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -183,6 +222,31 @@ export function Client360Drawer({ clientId, isOpen, onClose }: Client360DrawerPr
             </div>
           ) : clientData ? (
             <>
+              {/* Alerta de Débito Pendente no Topo se houver */}
+              {clientData.hasPendingDebt && activeTab !== "debts" && (
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-in fade-in">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                      <AlertTriangle className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-foreground block">
+                        Saldo em Aberto (Conta Cliente)
+                      </span>
+                      <span className="text-[11px] text-amber-700 dark:text-amber-300 font-extrabold">
+                        R$ {Number(clientData.totalPendingDebt).toFixed(2).replace(".", ",")}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setActiveTab("debts")}
+                    className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs h-7 rounded-xl px-3 cursor-pointer"
+                  >
+                    Ver Conta & Quitar
+                  </Button>
+                </div>
+              )}
               {/* ABA 1: VISÃO GERAL & LTV */}
               {activeTab === "overview" && (
                 <div className="space-y-6">
@@ -397,10 +461,207 @@ export function Client360Drawer({ clientId, isOpen, onClose }: Client360DrawerPr
                   </div>
                 </div>
               )}
+
+              {/* ABA 4: CONTA CLIENTE / A PRAZO */}
+              {activeTab === "debts" && (
+                <div className="space-y-5">
+                  {/* Cards de Métricas da Conta Corrente */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                        Total a Prazo
+                      </span>
+                      <strong className="text-base font-black text-foreground block mt-1">
+                        R$ {((clientData.totalPendingDebt || 0) + (clientData.totalPaidDebt || 0)).toFixed(2).replace(".", ",")}
+                      </strong>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
+                        Total Quitado
+                      </span>
+                      <strong className="text-base font-black text-emerald-600 dark:text-emerald-400 block mt-1">
+                        R$ {(clientData.totalPaidDebt || 0).toFixed(2).replace(".", ",")}
+                      </strong>
+                    </div>
+
+                    <div className={cn(
+                      "p-3.5 rounded-2xl border",
+                      clientData.hasPendingDebt
+                        ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                        : "bg-muted/40 border-border/60 text-foreground"
+                    )}>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                        Saldo em Aberto
+                      </span>
+                      <strong className={cn(
+                        "text-base font-black block mt-1",
+                        clientData.hasPendingDebt ? "text-amber-600 dark:text-amber-400" : "text-foreground"
+                      )}>
+                        R$ {(clientData.totalPendingDebt || 0).toFixed(2).replace(".", ",")}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Listagem de Lançamentos de Conta Cliente */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center justify-between">
+                      <span>Lançamentos em Aberto ({clientData.customerDebts?.length || 0})</span>
+                      <span className="text-[10px] text-muted-foreground normal-case">
+                        Histórico completo de consumo a prazo
+                      </span>
+                    </h4>
+
+                    {(!clientData.customerDebts || clientData.customerDebts.length === 0) ? (
+                      <div className="p-8 text-center border border-dashed rounded-3xl bg-muted/10 text-xs text-muted-foreground space-y-2">
+                        <FileText className="h-8 w-8 mx-auto text-muted-foreground/50" />
+                        <p className="font-bold text-foreground">Nenhum lançamento a prazo para este cliente.</p>
+                        <p className="text-[11px]">Quando o cliente consumir a prazo no PDV, o histórico aparecerá aqui.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {clientData.customerDebts.map((debt: any) => {
+                          const isPaid = debt.status === "PAID"
+                          const isPartial = debt.status === "PARTIAL"
+                          const isPending = debt.status === "PENDING"
+                          const remaining = Number(debt.remainingAmount || 0)
+                          const total = Number(debt.totalAmount || 0)
+                          const paid = Number(debt.paidAmount || 0)
+
+                          const isOverdue = debt.dueDate && new Date(debt.dueDate) < new Date() && !isPaid
+
+                          return (
+                            <div
+                              key={debt.id}
+                              className={cn(
+                                "p-4 rounded-2xl border transition-all space-y-3",
+                                isPaid
+                                  ? "bg-muted/20 border-border/50 opacity-80"
+                                  : isOverdue
+                                  ? "bg-rose-500/5 border-rose-500/30"
+                                  : "bg-card border-border/80 shadow-xs"
+                              )}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-foreground">
+                                      {debt.description}
+                                    </span>
+                                    {isPaid ? (
+                                      <Badge variant="success" className="text-[9px] px-2 py-0">
+                                        Quitado
+                                      </Badge>
+                                    ) : isPartial ? (
+                                      <Badge variant="secondary" className="text-[9px] px-2 py-0 bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30">
+                                        Parcialmente Pago
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="gold" className="text-[9px] px-2 py-0">
+                                        Em Aberto
+                                      </Badge>
+                                    )}
+
+                                    {isOverdue && (
+                                      <Badge variant="destructive" className="text-[9px] px-2 py-0 animate-pulse">
+                                        Vencido
+                                      </Badge>
+                                    )}
+                                  </div>
+
+                                  <div className="text-[10px] text-muted-foreground flex items-center gap-3">
+                                    <span>Lançado em: {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(debt.createdAt))}</span>
+                                    {debt.dueDate && (
+                                      <span className={cn(isOverdue && "text-rose-600 dark:text-rose-400 font-bold")}>
+                                        Vencimento: {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(debt.dueDate))}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="text-right shrink-0">
+                                  <span className="text-xs font-black text-foreground block">
+                                    R$ {total.toFixed(2).replace(".", ",")}
+                                  </span>
+                                  {!isPaid && (
+                                    <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                                      Resta: R$ {remaining.toFixed(2).replace(".", ",")}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {debt.notes && (
+                                <p className="text-[11px] text-muted-foreground bg-muted/30 p-2 rounded-xl border border-border/40 italic">
+                                  "{debt.notes}"
+                                </p>
+                              )}
+
+                              {/* Ações do Débito */}
+                              {!isPaid && (
+                                <div className="pt-2 border-t border-border/40 flex items-center justify-end gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={loadingDebtWhatsAppId === debt.id}
+                                    onClick={async () => {
+                                      setLoadingDebtWhatsAppId(debt.id)
+                                      try {
+                                        const res = await generateDebtWhatsAppReminderAction(debt.id)
+                                        if (res.success && res.whatsappUrl) {
+                                          window.open(res.whatsappUrl, "_blank")
+                                        }
+                                      } finally {
+                                        setLoadingDebtWhatsAppId(null)
+                                      }
+                                    }}
+                                    className="text-xs h-8 rounded-xl font-bold gap-1.5 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 cursor-pointer"
+                                  >
+                                    <Send className="h-3.5 w-3.5" />
+                                    <span>{loadingDebtWhatsAppId === debt.id ? "Gerando..." : "Cobrar WhatsApp"}</span>
+                                  </Button>
+
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedDebtToPay({
+                                        ...debt,
+                                        client: { name: clientData.name },
+                                      })
+                                      setPayModalOpen(true)
+                                    }}
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 rounded-xl px-3 gap-1 shadow-xs cursor-pointer"
+                                  >
+                                    <DollarSign className="h-3.5 w-3.5" />
+                                    <span>Quitar / Receber</span>
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </>
           ) : null}
         </div>
       </div>
+
+      {/* Modal de Quitação de Débito */}
+      <PayDebtModal
+        isOpen={payModalOpen}
+        onClose={() => {
+          setPayModalOpen(false)
+          setSelectedDebtToPay(null)
+        }}
+        onSuccess={() => {
+          refreshClientData()
+        }}
+        debt={selectedDebtToPay}
+      />
     </div>
   )
 }

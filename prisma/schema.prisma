@@ -59,6 +59,7 @@ enum PaymentMethod {
   CASH
   SPLIT_PAYMENT
   SUBSCRIPTION_CLUB
+  CUSTOMER_TAB // Conta Cliente / Pagar Depois / Fiado
 }
 
 enum PaymentMethodType {
@@ -70,6 +71,7 @@ enum PaymentMethodType {
   VOUCHER         // Vale Refeição / Alimentação / Cupom
   LOCAL_AGREEMENT // Convênio Local / Parceria
   BANK_TRANSFER   // Transferência / TED / Boleto
+  CUSTOMER_TAB    // Conta Cliente / Pagar Depois / Fiado
   OTHER           // Outro meio customizado
 }
 
@@ -111,6 +113,28 @@ enum SubscriptionStatus {
   INCOMPLETE
 }
 
+enum CashSessionStatus {
+  OPEN
+  CLOSED
+  AUDITED
+}
+
+enum CashMovementType {
+  OPENING_BALANCE // Fundo de Troco Inicial
+  SUPPLY          // Suprimento / Aporte extra de troco
+  BLEEDING        // Sangria (Retirada de segurança)
+  EXPENSE_OUT     // Despesa Rápida de Balcão (Petty Cash)
+  SALE_IN         // Venda / Entrada de Caixa no PDV
+  REFUND_OUT      // Devolução / Estorno em dinheiro
+  MANUAL_ADJUST   // Ajuste manual de caixa
+}
+
+enum DebtStatus {
+  PENDING   // Em aberto / aguardando pagamento
+  PARTIAL   // Quitado parcialmente
+  PAID      // Quitado integralmente
+  CANCELED  // Cancelado / Perdoado
+}
 
 // ----------------------------------------------------
 // AUTH & USERS (Compatível com Auth.js NextAuth v5)
@@ -136,6 +160,7 @@ model User {
   notes                  String?
   tags                   String[]   @default([])
   preferredProfessionalId String?   @db.ObjectId
+  creditLimit            Float?     @default(0.0) // Limite de crédito / fiado
 
   // Token de Ativação de Acesso / Criação de Senha
   activationToken        String?
@@ -168,6 +193,7 @@ model User {
   sessions              Session[]
   appointments          Appointment[]              @relation("ClientAppointments")
   orders                Order[]                    @relation("ClientOrders")
+  customerDebts         CustomerDebt[]             @relation("ClientDebts")
   platformSubscriptions UserPlatformSubscription[]
 
   createdAt DateTime @default(now())
@@ -274,6 +300,11 @@ model Business {
   accounts      FinancialAccount[]
   paymentMethods PaymentMethodConfig[]
   transactions          FinancialTransaction[]
+  cashSessions          CashRegisterSession[]
+  cashMovements         FinancialCashMovement[]
+  customerDebts         CustomerDebt[]
+  commissionSettlements CommissionSettlement[]
+  professionalAdvances  ProfessionalAdvance[]
   subscriptions         SubscriptionPlan[]
   platformSubscriptions UserPlatformSubscription[]
   timeBlocks            TimeBlock[]
@@ -343,9 +374,11 @@ model Professional {
   isActive          Boolean @default(true)
   showInCalendar    Boolean @default(true) // Se aparece na Agenda e grade de horários (desmarcar para recepcionistas/administrativo)
 
-  appointments Appointment[]
-  orderItems   OrderItem[]
-  timeBlocks   TimeBlock[]
+  appointments          Appointment[]
+  orderItems            OrderItem[]
+  timeBlocks            TimeBlock[]
+  commissionSettlements CommissionSettlement[]
+  advances              ProfessionalAdvance[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -580,9 +613,13 @@ model Order {
 
   notes         String?
 
+  cashSessionId String?              @db.ObjectId
+  cashSession   CashRegisterSession? @relation(fields: [cashSessionId], references: [id], onDelete: SetNull)
+
   items         OrderItem[]
   appointments  Appointment[]
   transactions  FinancialTransaction[]
+  customerDebts CustomerDebt[]
 
   openedAt      DateTime       @default(now())
   closedAt      DateTime?
@@ -622,6 +659,10 @@ model OrderItem {
   commissionRate  Float         @default(0.0) // % de comissão aplicada
   commissionValue Float         @default(0.0) // R$ a ser pago ao profissional
 
+  // Fechamento de Repasse (Preenchido quando a comissão for quitada)
+  settlementId    String?               @db.ObjectId
+  settlement      CommissionSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+
   createdAt       DateTime      @default(now())
 
   @@index([orderId])
@@ -646,6 +687,10 @@ model FinancialTransaction {
   accountId String?           @db.ObjectId
   account   FinancialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
 
+  // Vínculo com a Sessão de Caixa (PDV)
+  cashSessionId String?              @db.ObjectId
+  cashSession   CashRegisterSession? @relation(fields: [cashSessionId], references: [id], onDelete: SetNull)
+
   // Para transferências entre contas internas (Conta Destino)
   toAccountId String? @db.ObjectId
 
@@ -668,6 +713,7 @@ model FinancialTransaction {
 
   @@index([businessId])
   @@index([accountId])
+  @@index([cashSessionId])
 }
 
 // ----------------------------------------------------
@@ -703,9 +749,231 @@ model FinancialAccount {
 
   transactions   FinancialTransaction[]
   paymentMethods PaymentMethodConfig[]
+  cashSessions   CashRegisterSession[]
 
   @@index([businessId])
   @@index([isActive])
+}
+
+// ----------------------------------------------------
+// CONTROLE AVANÇADO DE CAIXA (SESSÃO DE TURNO / PDV)
+// ----------------------------------------------------
+
+model CashRegisterSession {
+  id         String            @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String            @db.ObjectId
+  business   Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  // Caixa Físico Vinculado (Opcional - Conta do tipo CASH_DRAWER)
+  financialAccountId String?           @db.ObjectId
+  financialAccount   FinancialAccount? @relation(fields: [financialAccountId], references: [id], onDelete: SetNull)
+
+  // Operador de Abertura
+  openedById   String   @db.ObjectId
+  openedByName String
+  openedAt     DateTime @default(now())
+
+  // Operador / Gerente de Fechamento
+  closedById   String?   @db.ObjectId
+  closedByName String?
+  closedAt     DateTime?
+
+  status CashSessionStatus @default(OPEN)
+
+  // Saldo de Abertura (Fundo de Troco)
+  initialBalance Float @default(0.0)
+
+  // Totais Calculados pelo Sistema (no fechamento)
+  calculatedCash    Float @default(0.0) // Esperado em Dinheiro Vivo
+  calculatedPix     Float @default(0.0) // Esperado em PIX
+  calculatedCard    Float @default(0.0) // Esperado em Cartão (Débito/Crédito)
+  calculatedOther   Float @default(0.0) // Outros (Vouchers, Convênios)
+  calculatedTotal   Float @default(0.0) // Total Geral Esperado
+
+  // Totais Informados pelo Operador (Conferência Cega)
+  reportedCash    Float?
+  reportedPix     Float?
+  reportedCard    Float?
+  reportedOther   Float?
+  reportedTotal   Float?
+
+  // Diferença / Quebra de Caixa (+ Sobra, - Falta)
+  differenceAmount Float?
+  closingNotes     String?
+
+  // Relações
+  movements    FinancialCashMovement[]
+  orders       Order[]
+  transactions FinancialTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId, status])
+  @@index([openedById])
+}
+
+// ----------------------------------------------------
+// MOVIMENTAÇÕES DE CAIXA (SANGRIA, SUPRIMENTO, PETTY CASH)
+// ----------------------------------------------------
+
+model FinancialCashMovement {
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId  String              @db.ObjectId
+  session    CashRegisterSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  businessId String           @db.ObjectId
+  business   Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  type       CashMovementType
+  amount     Float
+  reason     String           // Ex: "Sangria para o cofre", "Compra de café", "Troco de moedas"
+
+  // Conta de Destino para Sangrias / Origem para Suprimentos (Opcional)
+  destinationAccountId String? @db.ObjectId
+
+  // Auditoria
+  createdById   String  @db.ObjectId
+  createdByName String
+  authorizedBy  String? // Supervisor / Gerente que autorizou
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([businessId, type])
+}
+
+// ----------------------------------------------------
+// DÉBITOS, CONTAS A RECEBER & FIADOS DE CLIENTES
+// ----------------------------------------------------
+
+model CustomerDebt {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String     @db.ObjectId
+  business   Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  // Cliente devedor
+  clientId   String     @db.ObjectId
+  client     User       @relation("ClientDebts", fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Comanda de origem (opcional)
+  orderId    String?    @db.ObjectId
+  order      Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  description String     // Ex: "Atendimento CMD-906 - Corte e Pomada"
+  totalAmount Float      // Valor total do débito
+  paidAmount  Float      @default(0.0) // Quanto já foi pago
+  remainingAmount Float  // totalAmount - paidAmount
+
+  status      DebtStatus @default(PENDING)
+  dueDate     DateTime?  // Data combinada para o pagamento (vencimento)
+  notes       String?
+
+  // Auditoria
+  createdById   String   @db.ObjectId
+  createdByName String
+
+  // Pagamento da dívida
+  paidAt        DateTime?
+  paidMethod    PaymentMethod?
+  cashSessionId String?  @db.ObjectId
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([businessId, status])
+  @@index([clientId])
+}
+
+// ----------------------------------------------------
+// FECHAMENTO & REPASSE DE COMISSÕES DA EQUIPE
+// ----------------------------------------------------
+
+enum SettlementStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+model CommissionSettlement {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String           @db.ObjectId
+  business   Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  professionalId String       @db.ObjectId
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  grossSales        Float    @default(0.0) // Faturamento bruto gerado pelo profissional
+  serviceCommission Float    @default(0.0) // Comissão sobre serviços
+  productCommission Float    @default(0.0) // Comissão sobre produtos
+  totalCommission   Float    @default(0.0) // serviceCommission + productCommission
+  advanceDeductions Float    @default(0.0) // Total de vales/adiantamentos descontados
+  netPaymentAmount  Float    @default(0.0) // totalCommission - advanceDeductions
+
+  status      SettlementStatus @default(PAID)
+  paidAt      DateTime?        @default(now())
+  paidMethod  PaymentMethod?
+
+  // Vínculo Financeiro
+  financialAccountId     String? @db.ObjectId
+  cashSessionId          String? @db.ObjectId
+  financialTransactionId String? @db.ObjectId
+
+  notes       String?
+
+  // Auditoria
+  createdById   String   @db.ObjectId
+  createdByName String
+
+  // Itens e Vales vinculados
+  orderItems OrderItem[]
+  advances   ProfessionalAdvance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId, professionalId])
+  @@index([businessId, status])
+}
+
+// ----------------------------------------------------
+// VALES & ADIANTAMENTOS DE PROFISSIONAIS
+// ----------------------------------------------------
+
+model ProfessionalAdvance {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  businessId String       @db.ObjectId
+  business   Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  professionalId String   @db.ObjectId
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  amount      Float
+  description String      // Ex: "Vale adiantamento semanal", "Combustível"
+  date        DateTime    @default(now())
+
+  // Controle de Abatimento
+  isDeducted   Boolean    @default(false)
+  settlementId String?    @db.ObjectId
+  settlement   CommissionSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+
+  // Vínculos Financeiros (quando o dinheiro sai da empresa)
+  cashSessionId          String? @db.ObjectId
+  financialAccountId     String? @db.ObjectId
+  financialTransactionId String? @db.ObjectId
+
+  // Auditoria
+  createdById   String   @db.ObjectId
+  createdByName String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId, professionalId])
+  @@index([businessId, isDeducted])
 }
 
 // ----------------------------------------------------

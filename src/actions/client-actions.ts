@@ -181,6 +181,10 @@ export async function getClientsAction(params?: {
         sponsor: {
           select: { id: true, name: true, phone: true, referralCode: true },
         },
+        customerDebts: {
+          where: { status: { in: ["PENDING", "PARTIAL"] } },
+          select: { remainingAmount: true },
+        },
         _count: {
           select: {
             directs: true,
@@ -203,12 +207,19 @@ export async function getClientsAction(params?: {
         status: "new" as const,
       }
 
+      const pendingDebt = (c as any).customerDebts?.reduce(
+        (sum: number, d: any) => sum + (Number(d.remainingAmount) || 0),
+        0
+      ) || 0
+
       return {
         ...c,
         totalSpent: metric.totalSpent,
         visitCount: metric.visitCount,
         lastVisitDate: metric.lastVisitDate,
         crmStatus: metric.status,
+        pendingDebt: Math.round(pendingDebt * 100) / 100,
+        hasPendingDebt: pendingDebt > 0,
       }
     })
 
@@ -476,6 +487,10 @@ export async function getClientDetailsAction(clientId: string) {
           orderBy: { createdAt: "desc" },
           take: 20,
         },
+        customerDebts: {
+          orderBy: { createdAt: "desc" },
+          take: 30,
+        },
         directs: {
           select: {
             id: true,
@@ -531,6 +546,18 @@ export async function getClientDetailsAction(clientId: string) {
       .filter((c) => c.status === "PAID")
       .reduce((acc, c) => acc + (c.amount || 0), 0)
 
+    // Calcular Débitos e Fiados Pendentes
+    const debts = (client as any).customerDebts || []
+    let totalPendingDebt = 0
+    let totalPaidDebt = 0
+    debts.forEach((d: any) => {
+      if (d.status === "PENDING" || d.status === "PARTIAL") {
+        totalPendingDebt += Number(d.remainingAmount || 0)
+      } else if (d.status === "PAID") {
+        totalPaidDebt += Number(d.paidAmount || 0)
+      }
+    })
+
     // LTV Total
     const totalSpent = client.appointments
       .filter((a) => a.status === "COMPLETED")
@@ -544,6 +571,9 @@ export async function getClientDetailsAction(clientId: string) {
       client: {
         ...client,
         totalSpent,
+        totalPendingDebt: Math.round(totalPendingDebt * 100) / 100,
+        totalPaidDebt: Math.round(totalPaidDebt * 100) / 100,
+        hasPendingDebt: totalPendingDebt > 0,
         networkStats: {
           level1Count,
           level2Count,

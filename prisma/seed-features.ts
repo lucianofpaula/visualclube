@@ -111,11 +111,12 @@ const systemFeatures: SeedFeatureItem[] = [
     menuPath: "/app/financeiro",
     order: 7,
     subFeatures: [
-      { code: "financeiro.fluxo_caixa", name: "Fluxo de Caixa & Extrato", menuPath: "/app/financeiro", order: 1 },
-      { code: "financeiro.contas", name: "Contas & Carteiras", menuPath: "/app/financeiro/contas", order: 2 },
-      { code: "financeiro.meios_pagamento", name: "Meios de Pagamento", menuPath: "/app/financeiro/meios-de-pagamento", order: 3 },
-      { code: "financeiro.relatorio_comissoes", name: "Relatório Detalhado de Comissões", menuPath: "/app/financeiro", order: 4 },
-      { code: "financeiro.dre_avancado", name: "DRE Gerencial e Faturamento Avançado", menuPath: "/app/financeiro", order: 5 },
+      { code: "financeiro.caixa", name: "Caixa & Turno (PDV)", menuPath: "/app/financeiro/caixa", order: 1 },
+      { code: "financeiro.comissoes", name: "Comissões & Repasses", menuPath: "/app/financeiro/comissoes", order: 2 },
+      { code: "financeiro.fiados", name: "Contas a Receber (Pagar Depois)", menuPath: "/app/financeiro/fiados", order: 3 },
+      { code: "financeiro.fluxo_caixa", name: "Fluxo de Caixa & Extrato", menuPath: "/app/financeiro", order: 4 },
+      { code: "financeiro.contas", name: "Contas & Carteiras", menuPath: "/app/financeiro/contas", order: 5 },
+      { code: "financeiro.meios_pagamento", name: "Meios de Pagamento", menuPath: "/app/financeiro/meios-de-pagamento", order: 6 },
     ],
   },
   {

@@ -304,7 +304,14 @@ export function ClientList() {
                       </div>
                     </div>
 
-                    {getStatusBadge(client.crmStatus)}
+                    <div className="flex flex-col items-end gap-1">
+                      {getStatusBadge(client.crmStatus)}
+                      {client.hasPendingDebt && (
+                        <Badge variant="gold" className="text-[9px] px-1.5 py-0 font-bold flex items-center gap-0.5">
+                          <span>Conta: R$ {client.pendingDebt.toFixed(2)}</span>
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   {/* Informações Essenciais: WhatsApp e Visitas */}
@@ -437,7 +444,14 @@ export function ClientList() {
 
                         {/* Status */}
                         <td className="py-3 px-4">
-                          {getStatusBadge(client.crmStatus)}
+                          <div className="flex flex-col items-start gap-1">
+                            {getStatusBadge(client.crmStatus)}
+                            {client.hasPendingDebt && (
+                              <Badge variant="gold" className="text-[9px] px-1.5 py-0 font-bold">
+                                Conta: R$ {client.pendingDebt.toFixed(2)}
+                              </Badge>
+                            )}
+                          </div>
                         </td>
 
                         {/* LTV */}
