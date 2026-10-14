@@ -51,10 +51,10 @@ export function TeamSwitcher({
               {activeTeam.logo}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold text-zinc-100">{activeTeam.name}</span>
-              <span className="truncate text-xs text-amber-400/90 font-medium">{activeTeam.plan}</span>
+              <span className="truncate font-semibold text-foreground">{activeTeam.name}</span>
+              <span className="truncate text-xs text-amber-600 dark:text-amber-400 font-medium">{activeTeam.plan}</span>
             </div>
-            <ChevronsUpDownIcon className="ml-auto text-zinc-400 size-4" />
+            <ChevronsUpDownIcon className="ml-auto text-muted-foreground size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-64"
@@ -63,7 +63,7 @@ export function TeamSwitcher({
             sideOffset={4}
           >
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs text-zinc-400 font-medium">
+              <DropdownMenuLabel className="text-xs text-muted-foreground font-medium">
                 Estabelecimentos
               </DropdownMenuLabel>
               {teams.map((team, index) => (
@@ -72,12 +72,12 @@ export function TeamSwitcher({
                   onClick={() => setActiveTeam(team)}
                   className="gap-2.5 p-2 cursor-pointer"
                 >
-                  <div className="flex size-6 items-center justify-center rounded-md border border-zinc-700 bg-zinc-800 text-amber-400">
+                  <div className="flex size-6 items-center justify-center rounded-md border border-border bg-muted text-amber-500">
                     {team.logo}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{team.name}</span>
-                    <span className="text-[10px] text-zinc-400">{team.plan}</span>
+                    <span className="text-sm font-medium text-foreground">{team.name}</span>
+                    <span className="text-[10px] text-muted-foreground">{team.plan}</span>
                   </div>
                   <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
                 </DropdownMenuItem>

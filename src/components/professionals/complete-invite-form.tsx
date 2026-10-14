@@ -82,15 +82,15 @@ export function CompleteInviteForm({
   if (isCompleted) {
     return (
       <div className="text-center py-8 space-y-6">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 animate-in zoom-in">
-          <CheckCircle2 className="h-8 w-8" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-sm bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 animate-in zoom-in">
+          <CheckCircle2 className="h-7 w-7" />
         </div>
 
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-foreground">
+        <div className="space-y-1.5">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">
             Cadastro Concluído com Sucesso! 🎉
           </h2>
-          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-sm mx-auto">
             Seu perfil profissional foi ativado na equipe da barbearia. Agora você pode acessar o sistema com seu e-mail e sua nova senha.
           </p>
         </div>
@@ -98,8 +98,7 @@ export function CompleteInviteForm({
         <div className="pt-4">
           <Link href="/login">
             <Button
-              size="lg"
-              className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-xs sm:text-sm rounded-sm"
             >
               Fazer Login no Painel
             </Button>
@@ -110,23 +109,23 @@ export function CompleteInviteForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {serverError && (
-        <div className="flex items-center gap-3 p-3.5 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
-          <AlertCircle className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 p-3 rounded-sm border border-destructive/30 bg-destructive/10 text-destructive text-xs sm:text-sm">
+          <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{serverError}</span>
         </div>
       )}
 
       {/* Dados Bloqueados da Barbearia */}
-      <div className="p-3.5 rounded-xl border border-border bg-muted/30 space-y-2">
+      <div className="p-3.5 rounded-sm border border-border bg-muted/30 space-y-2">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">E-mail Cadastrado:</span>
-          <span className="font-semibold text-foreground">{initialData.email}</span>
+          <span className="font-medium text-foreground">{initialData.email}</span>
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">WhatsApp:</span>
-          <span className="font-semibold text-foreground">{initialData.whatsapp}</span>
+          <span className="font-medium text-foreground">{initialData.whatsapp}</span>
         </div>
         <div className="pt-1">
           <span className="text-[11px] text-muted-foreground block mb-1">

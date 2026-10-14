@@ -110,13 +110,13 @@ export function ProfessionalsList({
   if (professionals.length === 0) {
     return (
       <div className="rounded-sm border border-dashed border-border p-12 text-center bg-card/40">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-sm bg-amber-500/10 border border-amber-500/20 text-amber-500 mb-4">
-          <Scissors className="h-7 w-7" />
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-amber-500/10 border border-amber-500/20 text-amber-500 mb-3">
+          <Scissors className="h-6 w-6" />
         </div>
-        <h3 className="text-lg font-bold text-foreground">
+        <h3 className="text-base font-semibold text-foreground">
           Nenhum profissional cadastrado ainda
         </h3>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
+        <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
           Cadastre os barbeiros e especialistas da sua barbearia para gerenciar a agenda, comissões e atendimentos.
         </p>
       </div>
@@ -132,22 +132,22 @@ export function ProfessionalsList({
         return (
           <div
             key={prof.id}
-            className="flex flex-col justify-between rounded-sm border border-border bg-card p-5 shadow-sm hover:border-primary/40 transition-all text-card-foreground"
+            className="flex flex-col justify-between rounded-sm border border-border bg-card p-4 shadow-xs hover:border-primary/40 transition-all text-card-foreground"
           >
             <div>
               {/* Header do Card com Foto, Nome e Status */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 rounded-sm border border-border shadow-xs">
+                  <Avatar className="h-10 w-10 rounded-sm border border-border shadow-xs">
                     {prof.avatarUrl && (
                       <AvatarImage src={prof.avatarUrl} alt={prof.name} />
                     )}
-                    <AvatarFallback className="rounded-sm bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold text-sm">
+                    <AvatarFallback className="rounded-sm bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium text-xs">
                       {getInitials(prof.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h4 className="font-bold text-base text-foreground leading-tight">
+                    <h4 className="font-semibold text-sm text-foreground leading-tight">
                       {prof.name}
                     </h4>
                     <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -203,7 +203,7 @@ export function ProfessionalsList({
                   {prof.specialties.map((spec) => (
                     <span
                       key={spec}
-                      className="px-2 py-0.5 rounded-md text-[10px] bg-muted/60 text-muted-foreground border border-border font-medium"
+                      className="px-2 py-0.5 rounded-sm text-[10px] bg-muted/60 text-muted-foreground border border-border font-medium"
                     >
                       {spec}
                     </span>

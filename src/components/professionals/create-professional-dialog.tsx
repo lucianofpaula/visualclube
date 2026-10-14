@@ -151,35 +151,35 @@ export function CreateProfessionalDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl text-card-foreground">
+      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-sm border border-border bg-card p-6 shadow-xl text-card-foreground">
         <button
           type="button"
           onClick={handleCloseModal}
-          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground p-1 rounded-lg"
+          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground p-1 rounded-sm"
           aria-label="Fechar"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
 
         {createdInvite ? (
           /* Tela de Sucesso com Compartilhamento WhatsApp */
-          <div className="space-y-6 py-2 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
-              <Sparkles className="h-7 w-7" />
+          <div className="space-y-5 py-2 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+              <Sparkles className="h-6 w-6" />
             </div>
 
-            <div className="space-y-1.5">
-              <h3 className="text-xl font-bold text-foreground">
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-semibold text-foreground">
                 Profissional Pré-Cadastrado!
               </h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
                 O registro de <strong>{createdInvite.name}</strong> foi criado com sucesso. Agora envie o link para ele concluir a senha, foto e biografia.
               </p>
             </div>
 
             {/* Caixa com o Link de Convite */}
-            <div className="rounded-xl border border-border bg-muted/40 p-4 text-left space-y-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
+            <div className="rounded-sm border border-border bg-muted/40 p-3.5 text-left space-y-2">
+              <span className="text-xs font-medium text-muted-foreground block">
                 Link de Conclusão do Cadastro
               </span>
               <div className="flex items-center gap-2">
@@ -187,13 +187,13 @@ export function CreateProfessionalDialog({
                   type="text"
                   readOnly
                   value={createdInvite.inviteUrl}
-                  className="flex-1 bg-background text-foreground text-xs rounded-lg px-3 py-2 border border-border outline-none font-mono select-all"
+                  className="flex-1 bg-background text-foreground text-xs rounded-sm px-3 py-2 border border-border outline-none font-mono select-all"
                 />
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleCopyLink}
-                  className="gap-1.5 shrink-0"
+                  className="gap-1.5 shrink-0 rounded-sm text-xs"
                 >
                   {copied ? (
                     <>
@@ -211,14 +211,14 @@ export function CreateProfessionalDialog({
             </div>
 
             {/* Ações de Compartilhamento */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
               <a
                 href={getWhatsAppShareUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1"
               >
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white gap-2 font-semibold">
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white gap-2 font-semibold text-xs sm:text-sm rounded-sm">
                   <MessageCircle className="h-4 w-4" />
                   Enviar via WhatsApp
                 </Button>
@@ -226,7 +226,7 @@ export function CreateProfessionalDialog({
               <Button
                 variant="outline"
                 onClick={handleCloseModal}
-                className="flex-1"
+                className="flex-1 text-xs sm:text-sm rounded-sm"
               >
                 Concluir & Fechar
               </Button>
@@ -234,16 +234,16 @@ export function CreateProfessionalDialog({
           </div>
         ) : (
           /* Formulário de Cadastro do Profissional */
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-amber-500 font-semibold text-xs uppercase tracking-wider">
-                <UserPlus className="h-4 w-4" />
+              <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium text-xs">
+                <UserPlus className="h-3.5 w-3.5" />
                 Novo Integrante
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              <h2 className="text-base sm:text-lg font-semibold tracking-tight text-foreground">
                 Cadastrar Profissional
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Informe os dados básicos do barbeiro ou especialista da sua equipe.
               </p>
             </div>
@@ -310,7 +310,7 @@ export function CreateProfessionalDialog({
               {/* Especialidades */}
               <div className="space-y-2 pt-1">
                 <Label required>Especialidades & Habilidades</Label>
-                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 rounded-lg border border-border bg-muted/20">
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 rounded-sm border border-border bg-muted/20">
                   {DEFAULT_SPECIALTIES.map((spec) => {
                     const isSelected = selectedSpecialties.includes(spec);
                     return (
@@ -318,7 +318,7 @@ export function CreateProfessionalDialog({
                         type="button"
                         key={spec}
                         onClick={() => toggleSpecialty(spec)}
-                        className={`text-xs px-2.5 py-1 rounded-full transition-all flex items-center gap-1 border ${
+                        className={`text-xs px-2.5 py-1 rounded-sm transition-all flex items-center gap-1 border ${
                           isSelected
                             ? "bg-amber-500 text-zinc-950 font-semibold border-amber-500"
                             : "bg-card text-muted-foreground border-border hover:border-amber-500/50"
@@ -350,7 +350,7 @@ export function CreateProfessionalDialog({
                     variant="outline"
                     size="sm"
                     onClick={addCustomSpecialty}
-                    className="shrink-0 gap-1"
+                    className="shrink-0 gap-1 rounded-sm"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Adicionar
@@ -368,7 +368,7 @@ export function CreateProfessionalDialog({
                 <Label>Status Inicial do Profissional</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <label
-                    className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    className={`flex items-center gap-2 p-3 rounded-sm border cursor-pointer transition-colors ${
                       watch("status") === ProfessionalStatus.PENDING_REGISTRATION
                         ? "border-amber-500 bg-amber-500/10 text-foreground font-medium"
                         : "border-border bg-card text-muted-foreground"
@@ -390,7 +390,7 @@ export function CreateProfessionalDialog({
                   </label>
 
                   <label
-                    className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    className={`flex items-center gap-2 p-3 rounded-sm border cursor-pointer transition-colors ${
                       watch("status") === ProfessionalStatus.ACTIVE
                         ? "border-emerald-500 bg-emerald-500/10 text-foreground font-medium"
                         : "border-border bg-card text-muted-foreground"

@@ -135,14 +135,14 @@ export default async function PainelPage() {
           {/* Boas-Vindas */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 mb-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 mb-2">
                 <Sparkles className="h-3.5 w-3.5" />
-                Acesso Ativo • Perfil {session.role}
+                Acesso Ativo • {session.role}
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                 {barbershop ? barbershop.name : `Bem-vindo ao Visual Club, ${session.name}! 👋`}
               </h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                 {barbershop
                   ? `Central de comando da sua unidade. Subdomínio ativo em ${barbershop.subdomain}.visualclube.com.br`
                   : "Aqui é a central de comando da sua barbearia. Siga as instruções abaixo para ativar sua unidade."}
@@ -173,13 +173,13 @@ export default async function PainelPage() {
             {/* Métrica 1 */}
             <Card className="hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Agendamentos Hoje
                 </CardTitle>
                 <Calendar className="h-4 w-4 text-amber-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">0</div>
+                <div className="text-xl font-bold text-foreground">0</div>
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   Nenhum corte agendado ainda
@@ -190,13 +190,13 @@ export default async function PainelPage() {
             {/* Métrica 2 */}
             <Card className="hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Faturamento Previsto
                 </CardTitle>
                 <DollarSign className="h-4 w-4 text-amber-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">R$ 0,00</div>
+                <div className="text-xl font-bold text-foreground">R$ 0,00</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Caixa diário pronto para abertura
                 </p>
@@ -206,13 +206,13 @@ export default async function PainelPage() {
             {/* Métrica 3 */}
             <Card className="hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Barbeiros na Equipe
                 </CardTitle>
                 <Users className="h-4 w-4 text-amber-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-xl font-bold text-foreground">
                   {professionalCount}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -226,7 +226,7 @@ export default async function PainelPage() {
             {/* Métrica 4 */}
             <Card className="hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Status da Unidade
                 </CardTitle>
                 <Store className="h-4 w-4 text-amber-500" />
@@ -234,7 +234,7 @@ export default async function PainelPage() {
               <CardContent>
                 {barbershop ? (
                   <>
-                    <div className="text-sm font-bold text-emerald-500 flex items-center gap-1.5">
+                    <div className="text-xs font-semibold text-emerald-500 flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
                       Ativa & Operando
                     </div>
@@ -244,7 +244,7 @@ export default async function PainelPage() {
                   </>
                 ) : (
                   <>
-                    <div className="text-sm font-bold text-amber-500 flex items-center gap-1.5">
+                    <div className="text-xs font-semibold text-amber-500 flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                       Pendente de Cadastro
                     </div>
@@ -262,13 +262,13 @@ export default async function PainelPage() {
             {/* Card Grande de Boas-Vindas e Próximo Passo */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <div className="flex items-center gap-2 text-amber-500 mb-1">
-                  <Store className="h-5 w-5" />
-                  <span className="text-xs uppercase font-semibold tracking-wider">
+                <div className="flex items-center gap-1.5 text-amber-500 mb-1">
+                  <Store className="h-4 w-4" />
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
                     Plano de Implantação
                   </span>
                 </div>
-                <CardTitle className="text-xl">
+                <CardTitle className="text-base sm:text-lg font-semibold">
                   {barbershop
                     ? "Próximos passos para acelerar sua barbearia"
                     : "Prepare sua barbearia para receber agendamentos"}

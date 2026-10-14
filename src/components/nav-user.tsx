@@ -75,10 +75,10 @@ export function NavUser({
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium text-zinc-100">{user.name}</span>
-              <span className="truncate text-xs text-zinc-400">{user.email}</span>
+              <span className="truncate font-medium text-foreground">{user.name}</span>
+              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
             </div>
-            <ChevronsUpDownIcon className="ml-auto size-4 text-zinc-400" />
+            <ChevronsUpDownIcon className="ml-auto size-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-56"
@@ -91,14 +91,14 @@ export function NavUser({
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
                     {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
-                    <AvatarFallback className="rounded-lg bg-amber-500/20 text-amber-300 font-semibold text-xs border border-amber-500/30">
+                    <AvatarFallback className="rounded-lg bg-amber-500/20 text-amber-500 dark:text-amber-300 font-semibold text-xs border border-amber-500/30">
                       {getInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold text-zinc-100">{user.name}</span>
-                    <span className="truncate text-xs text-zinc-400">{user.email}</span>
-                    <span className="mt-0.5 inline-block text-[10px] uppercase font-mono text-amber-400 font-semibold">
+                    <span className="truncate font-semibold text-foreground">{user.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                    <span className="mt-0.5 inline-block text-[10px] uppercase font-mono text-amber-600 dark:text-amber-400 font-semibold">
                       Função: {user.role}
                     </span>
                   </div>

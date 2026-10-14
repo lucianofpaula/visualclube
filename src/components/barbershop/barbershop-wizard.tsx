@@ -271,7 +271,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
             >
               <div className="flex items-center gap-2">
                 <div
-                  className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                  className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
                     isDone
                       ? "bg-emerald-500 text-black"
                       : isActive
@@ -279,10 +279,10 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {isDone ? <CheckCircle2 className="h-4 w-4" /> : s.num}
+                  {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : s.num}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold truncate text-foreground">
+                  <p className="text-xs font-medium truncate text-foreground">
                     {s.title}
                   </p>
                   <p className="text-[10px] text-muted-foreground truncate hidden sm:block">
@@ -297,37 +297,37 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
 
       {feedback && (
         <div
-          className={`p-4 rounded-sm border text-sm flex items-center gap-3 ${
+          className={`p-3.5 rounded-sm border text-xs sm:text-sm flex items-center gap-2.5 ${
             feedback.type === "success"
               ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
               : "bg-destructive/10 border-destructive/30 text-destructive"
           }`}
         >
           {feedback.type === "success" ? (
-            <CheckCircle2 className="h-5 w-5 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
           ) : (
-            <AlertCircle className="h-5 w-5 shrink-0" />
+            <AlertCircle className="h-4 w-4 shrink-0" />
           )}
           <span>{feedback.text}</span>
         </div>
       )}
 
       {/* Card do Formulário Step-by-Step */}
-      <Card className="border-border shadow-md">
+      <Card className="border-border shadow-sm">
         <CardHeader className="pb-4">
-          <div className="flex items-center gap-2 text-amber-500 mb-1">
-            <Store className="h-5 w-5" />
-            <span className="text-xs uppercase font-bold tracking-wider">
+          <div className="flex items-center gap-1.5 text-amber-500 mb-1">
+            <Store className="h-4 w-4" />
+            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
               Passo {currentStep} de 4
             </span>
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-base sm:text-lg font-semibold">
             {currentStep === 1 && "Dados Principais da Barbearia"}
             {currentStep === 2 && "Endereço e Localização"}
             {currentStep === 3 && "Dias e Horários de Funcionamento"}
             {currentStep === 4 && "Identidade Visual e Domínio"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs text-muted-foreground">
             {currentStep === 1 && "Defina o nome do seu negócio e o endereço web exclusivo para seus clientes agendarem."}
             {currentStep === 2 && "Digite o CEP para preenchimento automático e confirme o número do imóvel."}
             {currentStep === 3 && "Configure os horários de atendimento da sua barbearia para cada dia da semana."}
@@ -336,20 +336,20 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* ─── PASSO 1: DADOS GERAIS ───────────────────────────── */}
             {currentStep === 1 && (
-              <div className="space-y-5 animate-in fade-in-50 duration-200">
-                <div className="space-y-2">
-                  <Label htmlFor="barbershop-name" className="text-sm font-semibold">
-                    Nome da Barbearia *
+              <div className="space-y-4 animate-in fade-in-50 duration-200">
+                <div className="space-y-1.5">
+                  <Label htmlFor="barbershop-name">
+                    Nome da Barbearia
                   </Label>
                   <Input
                     id="barbershop-name"
                     placeholder="Ex: Barbearia do Luciano"
                     value={formData.name}
                     onChange={handleNameChange}
-                    className="h-10 text-base"
+                    className="h-10 text-sm"
                     required
                   />
                   <p className="text-xs text-muted-foreground">
@@ -358,11 +358,11 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                 </div>
 
                 {/* Subdomínio Wildcard com visualização em tempo real */}
-                <div className="space-y-2 p-4 rounded-sm bg-muted/40 border border-border">
+                <div className="space-y-2 p-3.5 rounded-sm bg-muted/40 border border-border">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="subdomain" className="text-sm font-semibold flex items-center gap-1.5">
-                      <Globe className="h-4 w-4 text-amber-500" />
-                      Subdomínio Exclusivo (Wildcard) *
+                    <Label htmlFor="subdomain" className="flex items-center gap-1.5">
+                      <Globe className="h-3.5 w-3.5 text-amber-500" />
+                      Subdomínio Exclusivo
                     </Label>
                     <span className="text-[11px] text-muted-foreground font-mono">
                       (gerado automaticamente)
@@ -379,25 +379,25 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                         className="font-mono text-sm pr-2"
                       />
                     </div>
-                    <span className="text-sm font-mono text-muted-foreground shrink-0 bg-muted px-3 py-2 rounded-md border border-border">
+                    <span className="text-xs font-mono text-muted-foreground shrink-0 bg-muted px-2.5 py-2 rounded-sm border border-border">
                       .visualclube.com.br
                     </span>
                   </div>
 
-                  <div className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5 pt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
                     <span>Link público:</span>
-                    <strong className="text-foreground font-mono">
+                    <strong className="text-foreground font-mono font-normal">
                       https://{formData.subdomain || "suabarbearia"}.visualclube.com.br
                     </strong>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp" className="text-sm font-semibold flex items-center gap-1.5">
-                      <MessageCircle className="h-4 w-4 text-emerald-500" />
-                      WhatsApp de Atendimento *
+                  <div className="space-y-1.5">
+                    <Label htmlFor="whatsapp" className="flex items-center gap-1.5">
+                      <MessageCircle className="h-3.5 w-3.5 text-emerald-500" />
+                      WhatsApp de Atendimento
                     </Label>
                     <Input
                       id="whatsapp"
@@ -406,17 +406,17 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, whatsapp: e.target.value }))
                       }
-                      className="h-10"
+                      className="h-10 text-sm"
                     />
                     <p className="text-[11px] text-muted-foreground">
-                      Usado para o botão de agendamento rápido via WhatsApp.
+                      Usado para agendamentos rápidos via WhatsApp.
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-semibold flex items-center gap-1.5">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      Telefone Fixo / Adicional
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone" className="flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                      Telefone Fixo (Opcional)
                     </Label>
                     <Input
                       id="phone"
@@ -425,14 +425,14 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, phone: e.target.value }))
                       }
-                      className="h-10"
+                      className="h-10 text-sm"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-sm font-semibold">
-                    Biografia / Sobre a Barbearia
+                <div className="space-y-1.5">
+                  <Label htmlFor="description">
+                    Sobre a Barbearia (Opcional)
                   </Label>
                   <textarea
                     id="description"
@@ -442,7 +442,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, description: e.target.value }))
                     }
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full rounded-sm border border-input bg-background px-3 py-2 text-sm shadow-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-amber-500 focus-visible:ring-1 focus-visible:ring-amber-500 transition-colors"
                   />
                 </div>
               </div>
@@ -464,9 +464,9 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2 sm:col-span-1">
-                    <Label htmlFor="cep" className="text-sm font-semibold flex items-center justify-between">
-                      <span>CEP *</span>
+                  <div className="space-y-1.5 sm:col-span-1">
+                    <Label htmlFor="cep" className="flex items-center justify-between">
+                      <span>CEP</span>
                       {isLoadingCep && (
                         <span className="text-[11px] text-amber-500 flex items-center gap-1 font-normal">
                           <Loader2 className="h-3 w-3 animate-spin" /> Buscando...
@@ -486,9 +486,9 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                     )}
                   </div>
 
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="address" className="text-sm font-semibold">
-                      Logradouro / Rua / Avenida *
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="address">
+                      Logradouro / Rua
                     </Label>
                     <Input
                       id="address"
@@ -497,15 +497,15 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, address: e.target.value }))
                       }
-                      className="h-10"
+                      className="h-10 text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2 sm:col-span-1">
-                    <Label htmlFor="number" className="text-sm font-semibold text-amber-500 flex items-center gap-1">
-                      <span>Número *</span>
+                  <div className="space-y-1.5 sm:col-span-1">
+                    <Label htmlFor="number" className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      <span>Número</span>
                       <span className="text-[10px] text-muted-foreground font-normal">
                         (foco automático)
                       </span>
@@ -518,14 +518,14 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, number: e.target.value }))
                       }
-                      className="h-10 border-amber-500/50 focus-visible:border-amber-500 font-bold"
+                      className="h-10 border-amber-500/50 focus-visible:border-amber-500 font-medium text-sm"
                       required
                     />
                   </div>
 
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="complement" className="text-sm font-semibold">
-                      Complemento (opcional)
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="complement">
+                      Complemento (Opcional)
                     </Label>
                     <Input
                       id="complement"
@@ -534,15 +534,15 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, complement: e.target.value }))
                       }
-                      className="h-10"
+                      className="h-10 text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2 sm:col-span-1">
-                    <Label htmlFor="neighborhood" className="text-sm font-semibold">
-                      Bairro *
+                  <div className="space-y-1.5 sm:col-span-1">
+                    <Label htmlFor="neighborhood">
+                      Bairro
                     </Label>
                     <Input
                       id="neighborhood"
@@ -551,13 +551,13 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, neighborhood: e.target.value }))
                       }
-                      className="h-10"
+                      className="h-10 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-2 sm:col-span-1">
-                    <Label htmlFor="city" className="text-sm font-semibold">
-                      Cidade *
+                  <div className="space-y-1.5 sm:col-span-1">
+                    <Label htmlFor="city">
+                      Cidade
                     </Label>
                     <Input
                       id="city"
@@ -566,13 +566,13 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, city: e.target.value }))
                       }
-                      className="h-10"
+                      className="h-10 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-2 sm:col-span-1">
-                    <Label htmlFor="state" className="text-sm font-semibold">
-                      Estado (UF) *
+                  <div className="space-y-1.5 sm:col-span-1">
+                    <Label htmlFor="state">
+                      Estado (UF)
                     </Label>
                     <Input
                       id="state"
@@ -585,7 +585,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                           state: e.target.value.toUpperCase().slice(0, 2),
                         }))
                       }
-                      className="h-10 uppercase font-mono"
+                      className="h-10 uppercase font-mono text-sm"
                     />
                   </div>
                 </div>
@@ -686,16 +686,16 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
             {/* ─── PASSO 4: IDENTIDADE & DOMÍNIO PRÓPRIO ───────────── */}
             {currentStep === 4 && (
               <div className="space-y-5 animate-in fade-in-50 duration-200">
-                <div className="space-y-2">
-                  <Label htmlFor="customDomain" className="text-sm font-semibold flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Globe className="h-4 w-4 text-amber-500" />
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customDomain" className="flex items-center gap-1.5">
+                      <Globe className="h-3.5 w-3.5 text-amber-500" />
                       Domínio Próprio (Opcional)
-                    </span>
-                    <span className="text-[10px] font-semibold uppercase bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded">
+                    </Label>
+                    <span className="text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-sm">
                       Pro / Premium
                     </span>
-                  </Label>
+                  </div>
                   <Input
                     id="customDomain"
                     placeholder="ex: barbeariadoluciano.com.br"
@@ -714,8 +714,8 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="logoUrl" className="text-sm font-semibold">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="logoUrl">
                       URL do Logotipo (Opcional)
                     </Label>
                     <Input
@@ -725,12 +725,12 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, logoUrl: e.target.value }))
                       }
-                      className="h-10 text-xs"
+                      className="h-10 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="bannerUrl" className="text-sm font-semibold">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bannerUrl">
                       URL do Banner / Fachada (Opcional)
                     </Label>
                     <Input
@@ -740,14 +740,14 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, bannerUrl: e.target.value }))
                       }
-                      className="h-10 text-xs"
+                      className="h-10 text-sm"
                     />
                   </div>
                 </div>
 
                 {/* Resumo Final do Negócio */}
                 <div className="p-4 rounded-sm border border-amber-500/30 bg-card space-y-3">
-                  <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-amber-500" />
                     Resumo do Cadastro
                   </h4>

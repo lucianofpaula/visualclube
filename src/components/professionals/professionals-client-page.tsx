@@ -78,14 +78,14 @@ export function ProfessionalsClientPage({
       {/* Top Banner & Ações */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <div className="flex items-center gap-2 text-amber-500 text-xs font-semibold uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-xs font-medium mb-1">
             <Scissors className="h-3.5 w-3.5" />
             Equipe da Barbearia
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
             Profissionais & Barbeiros
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Cadastre sua equipe, envie links de ativação via WhatsApp e acompanhe o status de cada profissional.
           </p>
         </div>
@@ -93,8 +93,8 @@ export function ProfessionalsClientPage({
         <div>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            size="lg"
-            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold gap-2 shadow-md shadow-amber-500/10 cursor-pointer"
+            size="default"
+            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-xs sm:text-sm gap-2 shadow-sm cursor-pointer rounded-sm"
           >
             <UserPlus className="h-4 w-4" />
             Cadastrar Profissional
@@ -110,12 +110,12 @@ export function ProfessionalsClientPage({
               <span className="text-xs font-medium text-muted-foreground block">
                 Total de Profissionais
               </span>
-              <span className="text-2xl font-bold text-foreground">
+              <span className="text-xl font-bold text-foreground">
                 {totalCount}
               </span>
             </div>
-            <div className="h-10 w-10 rounded-sm bg-muted flex items-center justify-center text-muted-foreground">
-              <Users className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-sm bg-muted flex items-center justify-center text-muted-foreground">
+              <Users className="h-4 w-4" />
             </div>
           </CardContent>
         </Card>
@@ -126,12 +126,12 @@ export function ProfessionalsClientPage({
               <span className="text-xs font-medium text-muted-foreground block">
                 Ativos na Agenda
               </span>
-              <span className="text-2xl font-bold text-emerald-500">
+              <span className="text-xl font-bold text-emerald-500">
                 {activeCount}
               </span>
             </div>
-            <div className="h-10 w-10 rounded-sm bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-              <UserCheck className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-sm bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+              <UserCheck className="h-4 w-4" />
             </div>
           </CardContent>
         </Card>
@@ -142,12 +142,12 @@ export function ProfessionalsClientPage({
               <span className="text-xs font-medium text-muted-foreground block">
                 Pendentes de Convite
               </span>
-              <span className="text-2xl font-bold text-amber-500">
+              <span className="text-xl font-bold text-amber-500">
                 {pendingCount}
               </span>
             </div>
-            <div className="h-10 w-10 rounded-sm bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-              <Clock className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-sm bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+              <Clock className="h-4 w-4" />
             </div>
           </CardContent>
         </Card>
