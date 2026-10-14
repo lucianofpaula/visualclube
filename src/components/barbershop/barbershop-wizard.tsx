@@ -248,7 +248,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl space-y-6">
       {/* Indicador de Progresso / Steps */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
         {steps.map((s) => {
@@ -261,7 +261,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
               onClick={() => {
                 if (isDone) setCurrentStep(s.num);
               }}
-              className={`p-3 rounded-xl border transition-all cursor-pointer ${
+              className={`p-3 rounded-sm border transition-all cursor-pointer ${
                 isActive
                   ? "border-amber-500/60 bg-amber-500/10 shadow-sm"
                   : isDone
@@ -297,7 +297,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
 
       {feedback && (
         <div
-          className={`p-4 rounded-xl border text-sm flex items-center gap-3 ${
+          className={`p-4 rounded-sm border text-sm flex items-center gap-3 ${
             feedback.type === "success"
               ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
               : "bg-destructive/10 border-destructive/30 text-destructive"
@@ -358,7 +358,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                 </div>
 
                 {/* Subdomínio Wildcard com visualização em tempo real */}
-                <div className="space-y-2 p-4 rounded-xl bg-muted/40 border border-border">
+                <div className="space-y-2 p-4 rounded-sm bg-muted/40 border border-border">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="subdomain" className="text-sm font-semibold flex items-center gap-1.5">
                       <Globe className="h-4 w-4 text-amber-500" />
@@ -451,7 +451,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
             {/* ─── PASSO 2: ENDEREÇO & BUSCA POR CEP ────────────────── */}
             {currentStep === 2 && (
               <div className="space-y-5 animate-in fade-in-50 duration-200">
-                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm text-foreground flex items-start gap-2.5">
+                <div className="p-4 rounded-sm bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm text-foreground flex items-start gap-2.5">
                   <Search className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-amber-600 dark:text-amber-400">
@@ -595,7 +595,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
             {/* ─── PASSO 3: DIAS E HORÁRIOS DE FUNCIONAMENTO ───────── */}
             {currentStep === 3 && (
               <div className="space-y-5 animate-in fade-in-50 duration-200">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-muted/40 border border-border">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-sm bg-muted/40 border border-border">
                   <div>
                     <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <Clock className="h-4 w-4 text-amber-500" />
@@ -610,7 +610,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                     variant="outline"
                     size="sm"
                     onClick={handleApplyMondayToAll}
-                    className="text-xs shrink-0"
+                    className="text-xs shrink-0 rounded-sm"
                   >
                     Repetir horário de Seg nos demais dias
                   </Button>
@@ -620,7 +620,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                   {(formData.openingHours || DEFAULT_WEEK_SCHEDULE).map((item, idx) => (
                     <div
                       key={item.dayKey}
-                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border transition-colors gap-3 ${
+                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-sm border transition-colors gap-3 ${
                         item.isOpen
                           ? "bg-card border-border"
                           : "bg-muted/30 border-border/60 opacity-65"
@@ -746,7 +746,7 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                 </div>
 
                 {/* Resumo Final do Negócio */}
-                <div className="p-4 rounded-xl border border-amber-500/30 bg-card space-y-3">
+                <div className="p-4 rounded-sm border border-amber-500/30 bg-card space-y-3">
                   <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-amber-500" />
                     Resumo do Cadastro

@@ -114,7 +114,7 @@ export function ProfessionalsClientPage({
                 {totalCount}
               </span>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
+            <div className="h-10 w-10 rounded-sm bg-muted flex items-center justify-center text-muted-foreground">
               <Users className="h-5 w-5" />
             </div>
           </CardContent>
@@ -130,7 +130,7 @@ export function ProfessionalsClientPage({
                 {activeCount}
               </span>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+            <div className="h-10 w-10 rounded-sm bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
               <UserCheck className="h-5 w-5" />
             </div>
           </CardContent>
@@ -146,7 +146,7 @@ export function ProfessionalsClientPage({
                 {pendingCount}
               </span>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+            <div className="h-10 w-10 rounded-sm bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
               <Clock className="h-5 w-5" />
             </div>
           </CardContent>

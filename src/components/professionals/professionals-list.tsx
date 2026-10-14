@@ -109,8 +109,8 @@ export function ProfessionalsList({
 
   if (professionals.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border p-12 text-center bg-card/40">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mb-4">
+      <div className="rounded-sm border border-dashed border-border p-12 text-center bg-card/40">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-sm bg-amber-500/10 border border-amber-500/20 text-amber-500 mb-4">
           <Scissors className="h-7 w-7" />
         </div>
         <h3 className="text-lg font-bold text-foreground">
@@ -132,17 +132,17 @@ export function ProfessionalsList({
         return (
           <div
             key={prof.id}
-            className="flex flex-col justify-between rounded-xl border border-border bg-card p-5 shadow-sm hover:border-primary/40 transition-all text-card-foreground"
+            className="flex flex-col justify-between rounded-sm border border-border bg-card p-5 shadow-sm hover:border-primary/40 transition-all text-card-foreground"
           >
             <div>
               {/* Header do Card com Foto, Nome e Status */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 rounded-xl border border-border shadow-xs">
+                  <Avatar className="h-12 w-12 rounded-sm border border-border shadow-xs">
                     {prof.avatarUrl && (
                       <AvatarImage src={prof.avatarUrl} alt={prof.name} />
                     )}
-                    <AvatarFallback className="rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold text-sm">
+                    <AvatarFallback className="rounded-sm bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold text-sm">
                       {getInitials(prof.name)}
                     </AvatarFallback>
                   </Avatar>
@@ -216,7 +216,7 @@ export function ProfessionalsList({
             <div className="mt-5 pt-4 border-t border-border space-y-2.5">
               {/* Se o profissional estiver com cadastro pendente, exibe os botões de envio */}
               {prof.inviteToken && (
-                <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-2.5 space-y-2">
+                <div className="rounded-sm bg-amber-500/10 border border-amber-500/20 p-2.5 space-y-2">
                   <div className="flex items-center justify-between text-[11px] text-amber-600 dark:text-amber-400 font-medium">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />

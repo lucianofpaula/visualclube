@@ -87,13 +87,13 @@ export default async function ProfissionaisPage() {
         </header>
 
         {/* Conteúdo Principal */}
-        <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 w-full max-w-7xl">
           {!barbershop ? (
             /* Bloqueio: Obriga criação da barbearia antes de cadastrar profissionais */
-            <div className="max-w-2xl mx-auto w-full py-12">
-              <Card className="border-amber-500/40 shadow-lg text-center">
+            <div className="max-w-2xl w-full py-8">
+              <Card className="border-amber-500/40 shadow-lg text-center rounded-sm">
                 <CardHeader className="space-y-3 pb-4">
-                  <div className="h-16 w-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center">
+                  <div className="h-16 w-16 mx-auto rounded-sm bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center">
                     <Store className="h-8 w-8" />
                   </div>
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 mx-auto rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
@@ -108,7 +108,7 @@ export default async function ProfissionaisPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-2">
-                  <div className="p-4 rounded-xl bg-muted/40 border border-border text-left text-xs space-y-2 text-muted-foreground">
+                  <div className="p-4 rounded-sm bg-muted/40 border border-border text-left text-xs space-y-2 text-muted-foreground">
                     <p className="font-semibold text-foreground">
                       Por que este passo é obrigatório?
                     </p>
@@ -124,7 +124,7 @@ export default async function ProfissionaisPage() {
                       href="/painel/barbearia"
                       className={buttonVariants({
                         size: "lg",
-                        className: "w-full bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm gap-2 shadow-md shadow-amber-500/20",
+                        className: "w-full bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm gap-2 shadow-md shadow-amber-500/20 rounded-sm",
                       })}
                     >
                       <Store className="h-4 w-4" />

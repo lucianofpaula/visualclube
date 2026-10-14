@@ -101,12 +101,12 @@ export default async function PainelPage() {
         </header>
 
         {/* Conteúdo Principal do Dashboard */}
-        <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 w-full max-w-7xl">
           {/* Alerta de Onboarding: Se a barbearia ainda não foi criada */}
           {!barbershop && (
-            <div className="p-4 sm:p-5 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in-50">
+            <div className="p-4 sm:p-5 rounded-sm border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in-50">
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="h-10 w-10 rounded-sm bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
@@ -122,7 +122,7 @@ export default async function PainelPage() {
               <Link
                 href="/painel/barbearia"
                 className={buttonVariants({
-                  className: "bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs gap-2 shrink-0 shadow-sm",
+                  className: "bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs gap-2 shrink-0 shadow-sm rounded-sm",
                 })}
               >
                 <Store className="h-4 w-4" />
@@ -280,8 +280,8 @@ export default async function PainelPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   {/* Passo 1 */}
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/40 border border-emerald-500/20">
-                    <div className="h-7 w-7 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 flex items-center justify-center shrink-0 font-bold text-xs">
+                  <div className="flex items-start gap-3 p-3 rounded-sm bg-muted/40 border border-emerald-500/20">
+                    <div className="h-7 w-7 rounded-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 flex items-center justify-center shrink-0 font-bold text-xs">
                       <CheckCircle2 className="h-4 w-4" />
                     </div>
                     <div>
@@ -296,14 +296,14 @@ export default async function PainelPage() {
 
                   {/* Passo 2 */}
                   <div
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                    className={`flex items-start gap-3 p-3 rounded-sm border transition-colors ${
                       barbershop
                         ? "bg-muted/40 border-emerald-500/20"
                         : "bg-amber-500/5 border-amber-500/30"
                     }`}
                   >
                     <div
-                      className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 font-bold text-xs ${
+                      className={`h-7 w-7 rounded-sm flex items-center justify-center shrink-0 font-bold text-xs ${
                         barbershop
                           ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-500"
                           : "bg-amber-500/10 border border-amber-500/30 text-amber-500"
@@ -337,14 +337,14 @@ export default async function PainelPage() {
 
                   {/* Passo 3 */}
                   <div
-                    className={`flex items-start gap-3 p-3 rounded-lg border ${
+                    className={`flex items-start gap-3 p-3 rounded-sm border ${
                       professionalCount > 0
                         ? "bg-muted/40 border-emerald-500/20"
                         : "bg-muted/40 border-border"
                     }`}
                   >
                     <div
-                      className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 font-bold text-xs ${
+                      className={`h-7 w-7 rounded-sm flex items-center justify-center shrink-0 font-bold text-xs ${
                         professionalCount > 0
                           ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-500"
                           : "bg-muted border border-border text-muted-foreground"
@@ -468,7 +468,7 @@ export default async function PainelPage() {
                 <CardContent className="space-y-2">
                   <Link
                     href="/painel/barbearia"
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
+                    className="flex items-center justify-between p-2.5 rounded-sm bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <Store className="h-4 w-4 text-amber-500" />
@@ -479,7 +479,7 @@ export default async function PainelPage() {
 
                   <Link
                     href="/painel/profissionais"
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
+                    className="flex items-center justify-between p-2.5 rounded-sm bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-amber-500" />
@@ -491,7 +491,7 @@ export default async function PainelPage() {
                   <Link
                     href="/"
                     target="_blank"
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
+                    className="flex items-center justify-between p-2.5 rounded-sm bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
                   >
                     <span>Ver Landing Page Pública</span>
                     <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
