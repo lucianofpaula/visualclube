@@ -32,35 +32,16 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         title: "Visão Geral",
         url: "/painel",
         icon: <LayoutDashboard className="size-4" />,
-        isActive: true,
-        items: [
-          {
-            title: "Dashboard",
-            url: "/painel",
-          },
-        ],
       },
       {
         title: "Minha Barbearia",
         url: "/painel/barbearia",
         icon: <Store className="size-4" />,
-        items: [
-          {
-            title: "Configurações da Barbearia",
-            url: "/painel/barbearia",
-          },
-        ],
       },
       {
         title: "Profissionais",
         url: "/painel/profissionais",
         icon: <UserCheck className="size-4" />,
-        items: [
-          {
-            title: "Equipe & Cadastros",
-            url: "/painel/profissionais",
-          },
-        ],
       },
     ],
   };
