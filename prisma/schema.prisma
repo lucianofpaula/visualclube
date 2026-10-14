@@ -60,6 +60,9 @@ model Barbershop {
   state        String?        // Estado (UF)
   postalCode   String?        // CEP
 
+  // Horários de funcionamento por dia da semana
+  openingHours Json?
+
   // Status de funcionamento
   isActive     Boolean        @default(true)
 

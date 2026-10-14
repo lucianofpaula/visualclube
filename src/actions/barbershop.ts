@@ -203,6 +203,9 @@ export async function saveBarbershopAction(
           city: city || null,
           state: state || null,
           postalCode: postalCode || null,
+          openingHours: validation.data.openingHours
+            ? JSON.parse(JSON.stringify(validation.data.openingHours))
+            : undefined,
         },
       });
     } else {
@@ -224,6 +227,9 @@ export async function saveBarbershopAction(
           city: city || null,
           state: state || null,
           postalCode: postalCode || null,
+          openingHours: validation.data.openingHours
+            ? JSON.parse(JSON.stringify(validation.data.openingHours))
+            : undefined,
           userId: session.userId,
         },
       });

@@ -11,7 +11,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Scissors, LayoutDashboard, UserCheck } from "lucide-react";
+import { Scissors, LayoutDashboard, UserCheck, Store } from "lucide-react";
 import type { SessionPayload } from "@/lib/auth";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -37,6 +37,17 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           {
             title: "Dashboard",
             url: "/painel",
+          },
+        ],
+      },
+      {
+        title: "Minha Barbearia",
+        url: "/painel/barbearia",
+        icon: <Store className="size-4" />,
+        items: [
+          {
+            title: "Configurações da Barbearia",
+            url: "/painel/barbearia",
           },
         ],
       },

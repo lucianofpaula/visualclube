@@ -65,6 +65,18 @@ export async function createProfessionalAction(
       };
     }
 
+    // Verificar se o usuário já possui sua barbearia cadastrada
+    const barbershop = await getDb().barbershop.findFirst({
+      where: { userId: session.userId },
+    });
+
+    if (!barbershop) {
+      return {
+        success: false,
+        message: "Você precisa cadastrar sua barbearia antes de adicionar profissionais à equipe.",
+      };
+    }
+
     // Gerar token único e seguro de convite
     const inviteToken = crypto.randomUUID();
     const inviteExpiresAt = new Date();
@@ -84,6 +96,7 @@ export async function createProfessionalAction(
         inviteToken,
         inviteExpiresAt,
         createdById: session.userId,
+        barbershopId: barbershop.id,
       },
     });
 
