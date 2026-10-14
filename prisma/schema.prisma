@@ -1,0 +1,58 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  CLIENT
+  BARBER
+  RECEPTIONIST
+  MANAGER
+}
+
+enum ProfessionalStatus {
+  ACTIVE
+  INACTIVE
+  PENDING_REGISTRATION
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  whatsapp  String
+  password  String
+  role      UserRole @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Professional {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String             @unique
+  whatsapp        String
+  avatarUrl       String?
+  bio             String?
+  specialties     String[]           @default([])
+  status          ProfessionalStatus @default(PENDING_REGISTRATION)
+  inviteToken     String?            @unique
+  inviteExpiresAt DateTime?
+
+  userId          String?            @db.ObjectId
+  createdById     String             @db.ObjectId
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@map("professionals")
+}
