@@ -16,13 +16,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
+import { getCurrentUser } from "@/actions/auth";
+import { getCurrentUserBarbershopAction } from "@/actions/barbershop";
+import { LandingUserMenu } from "@/components/landing/landing-user-menu";
+
+export const instant = false;
+
 export const metadata = {
   title: "Visual Club | SaaS Premium para Barbearias de Alta Performance",
   description:
     "Gestão operacional, agendamento online, comissões automáticas e programa de indicações para barbearias e profissionais.",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getCurrentUser();
+  const barbershop = session ? await getCurrentUserBarbershopAction() : null;
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-amber-500/30 selection:text-amber-300">
       {/* Glow Effects */}
@@ -59,16 +68,22 @@ export default function HomePage() {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
-                Entrar
-              </Button>
-            </Link>
-            <Link href="/cadastro">
-              <Button size="sm" className="font-semibold shadow-md shadow-amber-500/20">
-                Começar Grátis
-              </Button>
-            </Link>
+            {session ? (
+              <LandingUserMenu user={session} barbershop={barbershop} />
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
+                    Entrar
+                  </Button>
+                </Link>
+                <Link href="/cadastro">
+                  <Button size="sm" className="font-semibold shadow-md shadow-amber-500/20">
+                    Começar Grátis
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -93,21 +108,47 @@ export default function HomePage() {
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/cadastro" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto text-base gap-2 px-8 h-13 shadow-xl shadow-amber-500/25">
-                Criar Minha Conta Grátis
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/login" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto text-base h-13 px-8 text-zinc-300"
-              >
-                Acessar Demonstração
-              </Button>
-            </Link>
+            {session ? (
+              <>
+                <Link href="/painel" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto text-base gap-2 px-8 h-13 shadow-xl shadow-amber-500/25 bg-amber-500 hover:bg-amber-600 text-black font-bold">
+                    Acessar Meu Painel
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link
+                  href={barbershop ? `/b/${barbershop.subdomain}` : "/painel/barbearia"}
+                  target={barbershop ? "_blank" : "_self"}
+                  className="w-full sm:w-auto"
+                >
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto text-base h-13 px-8 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                  >
+                    Acessar Meu Site
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/cadastro" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto text-base gap-2 px-8 h-13 shadow-xl shadow-amber-500/25">
+                    Criar Minha Conta Grátis
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/login" className="w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto text-base h-13 px-8 text-zinc-300"
+                  >
+                    Acessar Demonstração
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs sm:text-sm text-zinc-500">
