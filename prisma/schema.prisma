@@ -23,17 +23,58 @@ enum ProfessionalStatus {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  email     String   @unique
-  whatsapp  String
-  password  String
-  role      UserRole @default(USER)
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String       @unique
+  whatsapp    String
+  password    String
+  role        UserRole     @default(USER)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Relacionamento com as barbearias deste usuário/administrador
+  barbershops Barbershop[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@map("users")
+}
+
+model Barbershop {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  subdomain    String         @unique // Identificador único para wildcard: barbeariadoluciano.visualclube.com.br
+  customDomain String?        @unique // Domínio próprio opcional: barbeariadoluciano.com.br
+  
+  description  String?
+  phone        String?
+  whatsapp     String?
+  logoUrl      String?
+  bannerUrl    String?
+
+  // Endereço completo
+  address      String?        // Logradouro / Rua / Av
+  number       String?        // Número
+  complement   String?        // Complemento
+  neighborhood String?        // Bairro
+  city         String?        // Cidade
+  state        String?        // Estado (UF)
+  postalCode   String?        // CEP
+
+  // Status de funcionamento
+  isActive     Boolean        @default(true)
+
+  // Proprietário / Administrador responsável
+  userId       String         @db.ObjectId
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Profissionais vinculados a esta barbearia
+  professionals Professional[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([userId])
+  @@map("barbershops")
 }
 
 model Professional {
@@ -51,8 +92,13 @@ model Professional {
   userId          String?            @db.ObjectId
   createdById     String             @db.ObjectId
 
+  // Barbearia a qual o profissional pertence
+  barbershopId    String?            @db.ObjectId
+  barbershop      Barbershop?        @relation(fields: [barbershopId], references: [id])
+
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
+  @@index([barbershopId])
   @@map("professionals")
 }
