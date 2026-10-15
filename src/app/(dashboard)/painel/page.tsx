@@ -24,7 +24,6 @@ import {
   Sparkles,
   ArrowUpRight,
   Clock,
-  Shield,
   Scissors,
   CheckCircle2,
   AlertTriangle,
@@ -52,6 +51,7 @@ export default async function PainelPage() {
 
   const barbershop = await getCurrentUserBarbershopAction();
   const professionalCount = barbershop?.professionals?.length || 0;
+  const isSetupCompleted = Boolean(barbershop) && professionalCount > 0;
 
   return (
     <SidebarProvider>
@@ -257,10 +257,9 @@ export default async function PainelPage() {
             </Card>
           </div>
 
-          {/* Seção Central: Configuração da Barbearia e Atalhos */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Card Grande de Boas-Vindas e Próximo Passo */}
-            <Card className="lg:col-span-2">
+          {/* Plano de Implantação: exibido apenas enquanto houver sugestões pendentes */}
+          {!isSetupCompleted && (
+            <Card className="w-full rounded-sm border-border">
               <CardHeader>
                 <div className="flex items-center gap-1.5 text-amber-500 mb-1">
                   <Store className="h-4 w-4" />
@@ -385,121 +384,29 @@ export default async function PainelPage() {
                     <Link
                       href="/painel/barbearia"
                       className={buttonVariants({
-                        className: "w-full justify-center bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm gap-2",
+                        className: "w-full justify-center bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm gap-2 rounded-sm",
                       })}
                     >
                       <Store className="h-4 w-4" />
                       Cadastrar Minha Barbearia Agora (Passo 2)
                       <ArrowRight className="h-4 w-4" />
                     </Link>
-                  ) : professionalCount === 0 ? (
+                  ) : (
                     <Link
                       href="/painel/profissionais"
                       className={buttonVariants({
-                        className: "w-full justify-center bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm gap-2",
+                        className: "w-full justify-center bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm gap-2 rounded-sm",
                       })}
                     >
                       <Users className="h-4 w-4" />
                       Cadastrar Primeiro Barbeiro da Equipe (Passo 3)
                       <ArrowRight className="h-4 w-4" />
                     </Link>
-                  ) : (
-                    <Link
-                      href={`/b/${barbershop.subdomain}`}
-                      target="_blank"
-                      className={buttonVariants({
-                        variant: "outline",
-                        className: "w-full justify-center text-xs gap-2 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10",
-                      })}
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      Barbearia 100% Configurada • Visualizar Site de Agendamento
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Link>
                   )}
                 </div>
               </CardContent>
             </Card>
-
-            {/* Painel Lateral: Atalhos Rápidos e Segurança */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2 text-amber-500 mb-1">
-                    <Shield className="h-4 w-4" />
-                    <span className="text-xs uppercase font-semibold tracking-wider">
-                      Sua Sessão
-                    </span>
-                  </div>
-                  <CardTitle className="text-base">
-                    Dados do Usuário Ativo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-xs">
-                  <div className="flex justify-between py-1 border-b border-border">
-                    <span className="text-muted-foreground">Nome:</span>
-                    <span className="font-medium text-foreground">{session.name}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-border">
-                    <span className="text-muted-foreground">E-mail:</span>
-                    <span className="font-medium text-foreground truncate max-w-[160px]">
-                      {session.email}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-border">
-                    <span className="text-muted-foreground">Função:</span>
-                    <span className="font-mono text-amber-500 font-bold">
-                      {session.role}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-muted-foreground">Segurança:</span>
-                    <span className="text-emerald-500 font-medium">Sessão Segura JWT</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">
-                    Links Rápidos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Link
-                    href="/painel/barbearia"
-                    className="flex items-center justify-between p-2.5 rounded-sm bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Store className="h-4 w-4 text-amber-500" />
-                      Configurar Barbearia
-                    </span>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-                  </Link>
-
-                  <Link
-                    href="/painel/profissionais"
-                    className="flex items-center justify-between p-2.5 rounded-sm bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-amber-500" />
-                      Gerenciar Profissionais
-                    </span>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-                  </Link>
-
-                  <Link
-                    href="/"
-                    target="_blank"
-                    className="flex items-center justify-between p-2.5 rounded-sm bg-muted/40 border border-border hover:bg-muted text-xs text-foreground transition-colors"
-                  >
-                    <span>Ver Landing Page Pública</span>
-                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          )}
         </div>
       </SidebarInset>
     </SidebarProvider>
