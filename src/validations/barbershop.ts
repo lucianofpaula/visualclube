@@ -121,3 +121,23 @@ export const barbershopSchema = z.object({
 });
 
 export type BarbershopFormData = z.infer<typeof barbershopSchema>;
+
+/**
+ * Formata telefone brasileiro com máscara dinâmica:
+ * 11 dígitos: (XX) XXXXX-XXXX
+ * 10 dígitos: (XX) XXXX-XXXX
+ */
+export function formatPhone(val: string): string {
+  if (!val) return "";
+  const digits = val.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) {
+    return digits.length > 0 ? `(${digits}` : "";
+  }
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+}

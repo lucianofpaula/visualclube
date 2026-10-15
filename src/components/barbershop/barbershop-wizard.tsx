@@ -24,9 +24,11 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   generateSubdomainFromName,
   sanitizeSubdomain,
+  formatPhone,
   DEFAULT_WEEK_SCHEDULE,
   DaySchedule,
   BarbershopFormData,
@@ -54,8 +56,8 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
   const [formData, setFormData] = useState<BarbershopFormData>({
     name: initialData?.name || "",
     subdomain: initialData?.subdomain || "",
-    phone: initialData?.phone || "",
-    whatsapp: initialData?.whatsapp || "",
+    phone: formatPhone(initialData?.phone || ""),
+    whatsapp: formatPhone(initialData?.whatsapp || ""),
     description: initialData?.description || "",
 
     postalCode: initialData?.postalCode || "",
@@ -96,6 +98,21 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
     setFormData((prev) => ({
       ...prev,
       subdomain: sanitizeSubdomain(e.target.value),
+    }));
+  };
+
+  // WhatsApp e Telefone com máscara brasileira (XX) XXXXX-XXXX
+  const handleWhatsappChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      whatsapp: formatPhone(e.target.value),
+    }));
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      phone: formatPhone(e.target.value),
     }));
   };
 
@@ -397,16 +414,16 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                   <div className="space-y-1.5">
                     <Label htmlFor="whatsapp" className="flex items-center gap-1.5">
                       <MessageCircle className="h-3.5 w-3.5 text-emerald-500" />
-                      WhatsApp de Atendimento
+                      WhatsApp de Atendimento *
                     </Label>
                     <Input
                       id="whatsapp"
                       placeholder="(11) 99999-9999"
                       value={formData.whatsapp || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, whatsapp: e.target.value }))
-                      }
-                      className="h-10 text-sm"
+                      onChange={handleWhatsappChange}
+                      maxLength={15}
+                      className="h-10 text-sm font-mono"
+                      required
                     />
                     <p className="text-[11px] text-muted-foreground">
                       Usado para agendamentos rápidos via WhatsApp.
@@ -416,16 +433,15 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                   <div className="space-y-1.5">
                     <Label htmlFor="phone" className="flex items-center gap-1.5">
                       <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                      Telefone Fixo (Opcional)
+                      Telefone Fixo / Adicional (Opcional)
                     </Label>
                     <Input
                       id="phone"
                       placeholder="(11) 3333-3333"
                       value={formData.phone || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                      }
-                      className="h-10 text-sm"
+                      onChange={handlePhoneChange}
+                      maxLength={15}
+                      className="h-10 text-sm font-mono"
                     />
                   </div>
                 </div>
@@ -716,31 +732,27 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="logoUrl">
-                      URL do Logotipo (Opcional)
+                      Logotipo da Barbearia (Opcional)
                     </Label>
-                    <Input
-                      id="logoUrl"
-                      placeholder="https://exemplo.com/logo.png"
+                    <ImageUpload
                       value={formData.logoUrl || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, logoUrl: e.target.value }))
-                      }
-                      className="h-10 text-sm"
+                      onChange={(url) => setFormData((prev) => ({ ...prev, logoUrl: url }))}
+                      folder="visualclube/logos"
+                      aspectRatio="square"
+                      description="Logo quadrado (PNG ou JPG até 5MB)"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="bannerUrl">
-                      URL do Banner / Fachada (Opcional)
+                      Banner / Fachada da Barbearia (Opcional)
                     </Label>
-                    <Input
-                      id="bannerUrl"
-                      placeholder="https://exemplo.com/fachada.jpg"
+                    <ImageUpload
                       value={formData.bannerUrl || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, bannerUrl: e.target.value }))
-                      }
-                      className="h-10 text-sm"
+                      onChange={(url) => setFormData((prev) => ({ ...prev, bannerUrl: url }))}
+                      folder="visualclube/banners"
+                      aspectRatio="banner"
+                      description="Foto da fachada ou banner (até 5MB)"
                     />
                   </div>
                 </div>

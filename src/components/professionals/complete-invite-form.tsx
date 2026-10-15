@@ -11,6 +11,7 @@ import { completeProfessionalRegistrationAction } from "@/actions/professionals"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Scissors,
   CheckCircle2,
@@ -20,7 +21,6 @@ import {
   EyeOff,
   User,
   Sparkles,
-  Camera,
   FileText,
   Lock,
 } from "lucide-react";
@@ -52,6 +52,7 @@ export function CompleteInviteForm({
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CompleteProfessionalRegistrationInput>({
     resolver: zodResolver(completeProfessionalRegistrationSchema),
@@ -163,31 +164,16 @@ export function CompleteInviteForm({
       {/* Foto de Perfil */}
       <div className="space-y-1.5">
         <Label htmlFor="comp-avatar">
-          URL da Foto de Perfil (Opcional)
+          Foto de Perfil (Opcional)
         </Label>
-        <div className="flex gap-3 items-center">
-          <div className="h-11 w-11 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0 overflow-hidden">
-            {avatarUrlPreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatarUrlPreview}
-                alt="Preview"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = "none";
-                }}
-              />
-            ) : (
-              <Camera className="h-5 w-5 text-muted-foreground" />
-            )}
-          </div>
-          <Input
-            id="comp-avatar"
-            placeholder="https://exemplo.com/minha-foto.jpg"
-            disabled={isSubmitting}
-            {...register("avatarUrl")}
-          />
-        </div>
+        <ImageUpload
+          value={avatarUrlPreview || ""}
+          onChange={(url) => setValue("avatarUrl", url, { shouldValidate: true })}
+          folder="visualclube/profissionais"
+          aspectRatio="square"
+          description="Sua foto de apresentação na barbearia (até 5MB)"
+          disabled={isSubmitting}
+        />
         {errors.avatarUrl && (
           <p className="text-xs text-destructive">{errors.avatarUrl.message}</p>
         )}
