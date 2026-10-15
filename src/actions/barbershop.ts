@@ -236,6 +236,8 @@ export async function saveBarbershopAction(
     }
 
     revalidatePath("/painel");
+    revalidatePath("/painel/barbearia");
+    revalidatePath("/painel/profissionais");
     revalidatePath(`/b/${cleanSub}`);
 
     return {

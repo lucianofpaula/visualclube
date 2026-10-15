@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 import { ChevronsUpDownIcon, PlusIcon, StoreIcon } from "lucide-react";
 
 export function TeamSwitcher({
@@ -30,6 +31,12 @@ export function TeamSwitcher({
 }) {
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
+
+  React.useEffect(() => {
+    if (teams && teams[0]) {
+      setActiveTeam(teams[0]);
+    }
+  }, [teams]);
 
   if (!activeTeam) {
     return null;
@@ -85,12 +92,15 @@ export function TeamSwitcher({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="gap-2 p-2 cursor-pointer text-amber-400 focus:text-amber-300">
+              <DropdownMenuItem
+                render={<Link href="/painel/barbearia" />}
+                className="gap-2 p-2 cursor-pointer text-amber-500 hover:text-amber-400 focus:text-amber-300"
+              >
                 <div className="flex size-6 items-center justify-center rounded-md border border-amber-500/40 bg-amber-500/10">
-                  <PlusIcon className="size-3.5 text-amber-400" />
+                  <StoreIcon className="size-3.5 text-amber-500" />
                 </div>
                 <div className="font-medium text-xs">
-                  Cadastrar Nova Unidade
+                  Configurar Barbearia
                 </div>
               </DropdownMenuItem>
             </DropdownMenuGroup>

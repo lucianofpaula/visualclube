@@ -44,7 +44,7 @@ export default async function ProfissionaisPage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar user={session} />
+      <AppSidebar user={session} barbershop={barbershop} />
       <SidebarInset className="bg-background text-foreground min-h-screen">
         {/* Header com Trigger, Separator, Breadcrumb e ThemeToggle */}
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/90 px-4 backdrop-blur-md sticky top-0 z-40">
