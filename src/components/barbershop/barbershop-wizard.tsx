@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useState, useRef, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Store,
@@ -19,10 +18,8 @@ import {
   Phone,
   MessageCircle,
   Building2,
-  ExternalLink,
-  Users,
 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -276,48 +273,21 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
     <div className="max-w-4xl space-y-6">
       {/* Banner de Barbearia Ativa */}
       {hasExistingBarbershop && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-sm border border-emerald-500/30 bg-emerald-500/10 text-card-foreground">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                Barbearia Ativa & Publicada
-              </p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                <span className="font-medium text-foreground">{formData.name || "Sua Barbearia"}</span>
-                <span>•</span>
-                <span className="font-mono text-emerald-600 dark:text-emerald-400">
-                  {formData.subdomain}.visualclube.com.br
-                </span>
-              </p>
-            </div>
+        <div className="flex items-center gap-3 p-4 rounded-sm border border-emerald-500/30 bg-emerald-500/10 text-card-foreground">
+          <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <CheckCircle2 className="h-5 w-5" />
           </div>
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <Link
-              href={`/b/${formData.subdomain}`}
-              target="_blank"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "h-8 text-xs gap-1.5 border-emerald-500/40 hover:bg-emerald-500/20",
-              })}
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Ver Página Pública
-            </Link>
-            <Link
-              href="/painel/profissionais"
-              className={buttonVariants({
-                variant: "default",
-                size: "sm",
-                className: "h-8 text-xs gap-1.5 bg-amber-500 hover:bg-amber-600 text-black font-semibold",
-              })}
-            >
-              <Users className="h-3.5 w-3.5" />
-              Profissionais
-            </Link>
+          <div>
+            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              Barbearia Ativa & Publicada
+            </p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+              <span className="font-medium text-foreground">{formData.name || "Sua Barbearia"}</span>
+              <span>•</span>
+              <span className="font-mono text-emerald-600 dark:text-emerald-400">
+                {formData.subdomain}.visualclube.com.br
+              </span>
+            </p>
           </div>
         </div>
       )}
@@ -377,65 +347,25 @@ export function BarbershopWizard({ initialData }: BarbershopWizardProps) {
 
       {feedback && (
         <div
-          className={`p-4 rounded-sm border text-xs sm:text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+          className={`p-4 rounded-sm border text-xs sm:text-sm flex items-center gap-2.5 ${
             feedback.type === "success"
               ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
               : "bg-destructive/10 border-destructive/30 text-destructive"
           }`}
         >
-          <div className="flex items-center gap-2.5">
-            {feedback.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 shrink-0" />
-            ) : (
-              <AlertCircle className="h-5 w-5 shrink-0" />
-            )}
-            <div>
-              <p className="font-semibold text-sm">{feedback.text}</p>
-              {feedback.type === "success" && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Os dados foram atualizados com sucesso e estão visíveis em todo o sistema.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {feedback.type === "success" && (
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              <Link
-                href={`/b/${formData.subdomain}`}
-                target="_blank"
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "sm",
-                  className: "h-8 text-xs gap-1.5 border-emerald-500/40 hover:bg-emerald-500/20",
-                })}
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                Ver Página Pública
-              </Link>
-              <Link
-                href="/painel/profissionais"
-                className={buttonVariants({
-                  variant: "default",
-                  size: "sm",
-                  className: "h-8 text-xs gap-1.5 bg-amber-500 hover:bg-amber-600 text-black font-semibold",
-                })}
-              >
-                <Users className="h-3.5 w-3.5" />
-                Profissionais
-              </Link>
-              <Link
-                href="/painel"
-                className={buttonVariants({
-                  variant: "secondary",
-                  size: "sm",
-                  className: "h-8 text-xs gap-1.5",
-                })}
-              >
-                Visão Geral
-              </Link>
-            </div>
+          {feedback.type === "success" ? (
+            <CheckCircle2 className="h-5 w-5 shrink-0" />
+          ) : (
+            <AlertCircle className="h-5 w-5 shrink-0" />
           )}
+          <div>
+            <p className="font-semibold text-sm">{feedback.text}</p>
+            {feedback.type === "success" && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Os dados foram atualizados com sucesso e estão visíveis em todo o sistema.
+              </p>
+            )}
+          </div>
         </div>
       )}
 
