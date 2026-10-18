@@ -36,12 +36,12 @@ export async function uploadImageAction(formData: FormData): Promise<UploadResul
       };
     }
 
-    // Limite de tamanho: 5MB
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    // Limite de tamanho: 15MB
+    const MAX_FILE_SIZE = 15 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       return {
         success: false,
-        error: "A imagem é muito grande. O limite máximo permitido é de 5MB.",
+        error: "A imagem é muito grande. O limite máximo permitido é de 15MB.",
       };
     }
 

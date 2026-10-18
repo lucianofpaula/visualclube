@@ -19,12 +19,61 @@ export interface ImageUploadProps {
   className?: string;
 }
 
+async function compressImage(file: File, maxDimension = 1920, quality = 0.85): Promise<File> {
+  if (!file.type.startsWith("image/") || file.size <= 1024 * 1024) {
+    return file;
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return resolve(file);
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob || blob.size >= file.size) {
+            resolve(file);
+          } else {
+            const compressed = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressed);
+          }
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
+
 export function ImageUpload({
   value,
   onChange,
   folder = "visualclube",
   label,
-  description = "PNG, JPG ou WEBP até 5MB",
+  description = "PNG, JPG ou WEBP até 15MB",
   aspectRatio = "square",
   disabled = false,
   className,
@@ -45,16 +94,17 @@ export function ImageUpload({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("O arquivo é muito grande. O tamanho máximo permitido é 5MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      setErrorMessage("O arquivo é muito grande. O tamanho máximo permitido é 15MB.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("folder", folder);
-
     startTransition(async () => {
+      const processedFile = await compressImage(file);
+      const formData = new FormData();
+      formData.append("file", processedFile);
+      formData.append("folder", folder);
+
       const result = await uploadImageAction(formData);
 
       if (result.success && result.url) {
