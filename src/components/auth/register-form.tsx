@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
 import { registerSchema, type RegisterInput } from "@/validations/auth";
 import { registerUserAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -216,17 +216,19 @@ export function RegisterForm() {
       <div className="pt-2">
         <Button
           type="submit"
-          className="w-full text-base font-semibold"
-          size="lg"
           disabled={isSubmitting}
+          className="w-full h-12 text-sm sm:text-base font-bold bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/35 transition-all rounded-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
               Criando sua conta...
             </span>
           ) : (
-            "Criar Minha Conta Grátis"
+            <span className="flex items-center justify-center gap-2">
+              Criar Minha Conta Grátis
+              <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+            </span>
           )}
         </Button>
       </div>
